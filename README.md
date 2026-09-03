@@ -41,6 +41,11 @@ The intended architecture:
   answer at all.
 - **Agents talk to each other** and split up work, instead of each one only
   knowing its own isolated piece.
+- **Why OpenClaw runs on both Victus and Pyramid:** having a gateway on each
+  side makes it easier for them to talk to each other directly, and lets
+  work get shared between them in a **carousel/rotation fashion** — passing
+  a task back and forth between devices rather than one always carrying it
+  alone.
 
 Real, worth doing, still in progress — not yet built, this is the target.
 
