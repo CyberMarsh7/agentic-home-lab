@@ -19,8 +19,8 @@ talk to it," not for technical completeness.
 
 | Device | Role | Reachable at | Notes |
 |---|---|---|---|
-| **Victus** | Main machine (Windows laptop, RTX 4050 / 6GB VRAM) | local | Runs Ollama (local models), Claude Code installed locally, Pyramid is physically docked into it |
-| **Pyramid** (aka "Oracle") | Gateway — everything routes through this first | `192.168.1.227`, SSH as `marshinpyramid` | Runs OpenClaw gateway. Two installs exist on disk — always use the explicit path `/root/.npm-global/lib/node_modules/openclaw/dist/index.js`, not the stale `/usr/bin/openclaw`. No monitor attached; managed headlessly over SSH or the Control UI at `http://192.168.1.227:18789` |
+| **Victus** | Main machine (Windows laptop, RTX 4050 / 6GB VRAM) | local | Runs its **own OpenClaw gateway** (hosts Samantha, hermes), plus Ollama (local models) and Claude Code installed locally. Pyramid is physically docked into it |
+| **Pyramid** (aka "Oracle") | Gateway — everything routes through this first | `192.168.1.227`, SSH as `marshinpyramid` | Runs its **own OpenClaw gateway**. Two installs exist on disk — always use the explicit path `/root/.npm-global/lib/node_modules/openclaw/dist/index.js`, not the stale `/usr/bin/openclaw`. No monitor attached; managed headlessly over SSH or the Control UI at `http://192.168.1.227:18789` |
 | **Kali Pi** | Security-tooling agent (Raspberry Pi, genuine Kali Linux) | `marshinpi-1` on Tailscale | No GPU/NPU, 921MB RAM — routes model inference to Victus's Ollama over Tailscale |
 | Old Kali box | Possibly superseded by the Kali Pi above, unconfirmed | `192.168.1.117` | Never confirmed reachable — needs clarifying |
 
