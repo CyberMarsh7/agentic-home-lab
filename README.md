@@ -32,10 +32,17 @@ talk to it," not for technical completeness.
 
 ## Vision
 
-The intended architecture: **Pyramid is the front-end gateway everything
-routes through first**, then out to Victus and the other agent nodes — so
-agents can talk to each other and organize work together instead of running
-in isolation. Real, worth doing, still in progress.
+The intended architecture:
+
+- **Pyramid is the front door.** Everything Bret says goes to Pyramid first.
+- **Fallback:** if Pyramid is down or unreachable, it falls back automatically
+  to whatever Claude window/device Bret is actually talking through (e.g. a
+  local Claude Code session on Victus), so there's never a moment with no
+  answer at all.
+- **Agents talk to each other** and split up work, instead of each one only
+  knowing its own isolated piece.
+
+Real, worth doing, still in progress — not yet built, this is the target.
 
 ## Docs in this repo
 
