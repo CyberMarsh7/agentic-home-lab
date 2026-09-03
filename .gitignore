@@ -1,0 +1,8 @@
+# Never commit real secrets. Put actual keys in .env (ignored), only
+# placeholders belong in .env.example (tracked).
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
