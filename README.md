@@ -5,6 +5,16 @@ the durable record of that setup — so device reflashes, session resets, and
 lost desktop files don't wipe out the knowledge of how it's built and how
 to fix it.
 
+## The actual goal (read this before anything else)
+
+Bret cannot type — it physically hurts. **Every agent, every interface, every
+setup step in this lab must be usable entirely by voice, with no typing and
+no precise clicking required.** This isn't a nice-to-have; it's the reason
+the whole lab exists, built for his wife and kids too. If a fix, a doc, or
+a setup step assumes typing, it's not done yet — it needs a voice-first path
+before it counts as finished. When in doubt, optimize for "can Bret just
+talk to it," not for technical completeness.
+
 ## Devices
 
 | Device | Role | Reachable at | Notes |
