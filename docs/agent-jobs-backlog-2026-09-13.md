@@ -18,6 +18,15 @@ it's configured.
 
 ## 1. Email triage / "what needs my attention" agent — highest priority, asked for repeatedly
 
+**Decided by Bret, 2026-09-13: Samantha is the secretary.** Not a new
+`mail_reader` agent — Samantha herself gets email/text access and reports
+on them. Replace every `mail_reader` reference below with `samantha`
+when actually building this. This does mean deliberately loosening
+Samantha's current hardening (web/browser tools were disabled specifically
+because small local models are more exposed to prompt-injection content —
+email is exactly that kind of content) — a real tradeoff, made knowingly,
+not something to quietly work around.
+
 **What Bret wants:** an agent that reads his email and tells him what he
 actually needs to know or act on — not Claude reading email for him in a
 chat window once and forgetting it, an agent that keeps doing this on its
