@@ -41,8 +41,32 @@ build it against is real and confirmed.
 **This is likely exactly what the ESP32-S3 boards on Pyramid were for**:
 firmware on the board reads a physical button press, then calls
 `talk.ptt.start`/`talk.ptt.stop` on the Gateway (Pyramid) over the network,
-and plays back whatever `talk.speak` sends. That work never got past
-"boards identified, mic/speaker unconfirmed" per the August session note.
+and plays back whatever `talk.speak` sends. The August session note said
+this never got past "boards identified, mic/speaker unconfirmed" — but
+Bret confirmed directly on 2026-09-13 that **the button and the network
+call already work**. So this went further than this repo's record showed;
+the record was stale, not the hardware.
+
+**Current real blocker, per Bret directly: "that agent is about brain
+dead so I can't really do anything."** The button works — whatever
+answers on the other end doesn't. Two likely, checkable causes, not
+guesses:
+
+1. **Wrong/too-small model bound to whichever agent answers the button.**
+   Verify: `openclaw agents list --bindings` (which agent actually answers
+   this node), then `openclaw config get agents.entries.<that-agent>.model
+   --json` and `openclaw models status --agent <that-agent> --json --check`.
+2. **Tool policy locked down to the point of uselessness.** Per
+   `docs/openclaw-open-issues-diagnosis-2026-09-13.md`'s finding on tool
+   precedence: "deny always wins; if `allow` is non-empty, everything else
+   is blocked." If this agent's `tools.allow` is small/restrictive
+   (plausible if it was hardened like Samantha — cautious exec, web/browser
+   disabled), it may be unable to actually do requested work, not just
+   unwilling. Verify: `openclaw config get agents.entries.<that-agent>.tools
+   --json`.
+
+Not yet run against real hardware — this is the exact diagnostic to do
+next, from a local session.
 
 ### Two already-built (no custom firmware needed) alternatives, if a phone is workable
 
