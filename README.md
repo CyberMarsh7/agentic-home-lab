@@ -15,6 +15,16 @@ a setup step assumes typing, it's not done yet — it needs a voice-first path
 before it counts as finished. When in doubt, optimize for "can Bret just
 talk to it," not for technical completeness.
 
+## Golden rule: give agents jobs, don't do their jobs for them
+
+If Bret says "have `<agent>` do X," the correct output is an
+`openclaw agent --agent <id> --message "X"` command (see
+`docs/openclaw-dispatching-jobs-2026-09-13.md`) — never the assistant doing
+X directly in chat as a stand-in. `openclaw agents add` only *creates* an
+agent; it does not give it work. Confusing the two is why agents never
+built up any real track record for two months straight — read the dated
+doc above before touching any agent-dispatch task.
+
 ## Devices
 
 | Device | Role | Reachable at | Notes |
