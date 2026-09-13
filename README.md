@@ -7,13 +7,33 @@ to fix it.
 
 ## The actual goal (read this before anything else)
 
-Bret cannot type — it physically hurts. **Every agent, every interface, every
-setup step in this lab must be usable entirely by voice, with no typing and
-no precise clicking required.** This isn't a nice-to-have; it's the reason
-the whole lab exists, built for his wife and kids too. If a fix, a doc, or
-a setup step assumes typing, it's not done yet — it needs a voice-first path
-before it counts as finished. When in doubt, optimize for "can Bret just
-talk to it," not for technical completeness.
+Bret cannot type, physically — not "it's uncomfortable," not "he'd rather
+not." **Every agent, every interface, every setup step in this lab must be
+usable entirely by voice, with zero typing and zero precise clicking,
+ever.** This isn't a nice-to-have; it's the reason the whole lab exists,
+built for his wife and kids too. If a fix, a doc, or a setup step assumes
+typing or clicking as a fallback "if voice doesn't work," it's not done —
+it needs a real voice-only path before it counts as finished. When in
+doubt, optimize for "can Bret just talk to it, start to finish," not for
+technical completeness.
+
+**Voice input must be push-to-talk (a physical button), never wake-word
+or always-listening — for two separate hard reasons, not one:** Bret
+can't reliably trigger a wake word given the physical constraint above,
+*and* the house is loud (kids), which makes wake-word detection actively
+unreliable regardless — false triggers and missed triggers both. Never
+propose always-on/wake-word listening as a solution or a temporary
+fallback for this lab. See `docs/voice-interface-2026-09-13.md`.
+
+## Golden rule: give agents jobs, don't do their jobs for them
+
+If Bret says "have `<agent>` do X," the correct output is an
+`openclaw agent --agent <id> --message "X"` command (see
+`docs/openclaw-dispatching-jobs-2026-09-13.md`) — never the assistant doing
+X directly in chat as a stand-in. `openclaw agents add` only *creates* an
+agent; it does not give it work. Confusing the two is why agents never
+built up any real track record for two months straight — read the dated
+doc above before touching any agent-dispatch task.
 
 ## Devices
 
@@ -29,6 +49,13 @@ talk to it," not for technical completeness.
 - **Samantha** — runs on Victus, local model (`qwen2.5:3b-instruct`), security-hardened (web/browser tools disabled, cautious exec policy). Do not swap her to a cloud model without deciding that on purpose.
 - **hermes** — also on Victus, currently stopped (was competing with Samantha for GPU memory). Config is lightened for whenever it's restarted.
 - **claude** — being added to the Pyramid gateway alongside Samantha, backed by Claude (`claude-cli/claude-opus-5`), reusing the local Claude Code subscription login rather than a separate API key. See `docs/openclaw-setup-2026-09-03.md`.
+
+**Recurring jobs (`openclaw automations`, i.e. cron jobs) configured on any
+agent above: NONE, as of 2026-09-13.** Every agent here is a slot that
+exists, not a job that runs on its own. See
+`docs/agent-jobs-backlog-2026-09-13.md` for what's actually been asked for
+(email triage is #1) and the real steps to build it — don't let this line
+go stale without an `openclaw automations list` output backing it up.
 
 ## Vision
 

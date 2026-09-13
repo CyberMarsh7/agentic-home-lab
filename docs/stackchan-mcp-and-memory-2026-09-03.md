@@ -8,30 +8,52 @@ Two new requirements from Bret, recorded here so they don't get lost.
 preserve what conversations were about, not necessarily every raw message
 forever.
 
-**What OpenClaw actually offers today:** a background "dreaming" system
-that consolidates short-term recall into long-term memory (`MEMORY.md`)
-automatically — but it's **not time-based**. It promotes items based on
-how often they're recalled and how varied the queries touching them are,
-not on a calendar. Config keys that exist:
+**Correction (2026-09-13): the paragraph below was wrong.** Re-verified
+directly against docs.openclaw.ai — "dreaming" IS time-based, driven by an
+actual cron expression, not a usage/recall-frequency score as originally
+written here. This makes the "gap" described below **not a gap** — the
+schedule already exists, it just needs to be set to weekly instead of its
+default daily.
+
+**What OpenClaw actually offers, corrected:** a background "dreaming"
+sweep that consolidates daily notes into long-term memory (`MEMORY.md`),
+scheduled via a real cron expression:
 
 ```
-plugins.entries.memory-core.config.dreaming.enabled   # on by default
-agents.defaults.compaction.memoryFlush.enabled          # flush before compaction
+plugins.entries.memory-core.config.dreaming.enabled     # on by default
+plugins.entries.memory-core.config.dreaming.frequency   # cron expr, default "0 3 * * *" (daily 3am UTC)
+plugins.entries.memory-core.config.dreaming.timezone    # IANA tz
+plugins.entries.memory-core.config.dreaming.model       # optional model override
+agents.defaults.compaction.memoryFlush.enabled          # separate: flush before compaction, not a dreaming sweep
 ```
 
-There's also a manual replay command for backfilling older notes into
-long-term memory:
+**To get Bret's actual 7-day requirement, this is likely all that's
+needed** (once on a local session that can run it):
 ```bash
-openclaw memory rem-backfill --path ./memory --stage-short-term
-openclaw memory rem-backfill --rollback   # to undo
+openclaw config set plugins.entries.memory-core.config.dreaming.frequency "0 3 * * 1"
 ```
+(Monday 3am — pick whatever day/time actually fits.) Within each sweep,
+three gates must all pass before something gets promoted to `MEMORY.md`:
+a minimum score, a minimum recall count, and a minimum query-diversity —
+that scoring logic is real but is about *what* gets kept during a sweep,
+not *when* the sweep happens.
 
-**Gap:** none of this fires on a fixed weekly schedule by itself. To get
-real 7-day folding, the likely path is a small scheduled job (cron, or an
-OpenClaw automation hook) that runs the backfill/consolidation command
-once a week, rather than relying on the score-based dreaming system alone.
-Not yet built — needs a decision on which device runs the schedule
-(Pyramid, since it's meant to be the always-on front door).
+Manual/on-demand tools for inspecting or forcing this outside the
+schedule:
+```bash
+openclaw memory promote [--apply] [--limit N]
+openclaw memory promote-explain "query text"
+openclaw memory status --deep
+```
+Output is written to `DREAMS.md` for human review. (The
+`memory rem-backfill` commands previously listed here are for a different
+purpose — one-time backfilling of pre-existing notes — not the recurring
+schedule itself.)
+
+Still not yet set on any device — needs a decision on which agent's
+dreaming config to change (Pyramid, since it's meant to be the always-on
+front door) and confirmation the setting actually took
+(`openclaw config get plugins.entries.memory-core.config.dreaming`).
 
 ## 2. Stackchan MCP integration
 
