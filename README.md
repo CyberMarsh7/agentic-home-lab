@@ -42,6 +42,13 @@ doc above before touching any agent-dispatch task.
 - **hermes** — also on Victus, currently stopped (was competing with Samantha for GPU memory). Config is lightened for whenever it's restarted.
 - **claude** — being added to the Pyramid gateway alongside Samantha, backed by Claude (`claude-cli/claude-opus-5`), reusing the local Claude Code subscription login rather than a separate API key. See `docs/openclaw-setup-2026-09-03.md`.
 
+**Recurring jobs (`openclaw automations`, i.e. cron jobs) configured on any
+agent above: NONE, as of 2026-09-13.** Every agent here is a slot that
+exists, not a job that runs on its own. See
+`docs/agent-jobs-backlog-2026-09-13.md` for what's actually been asked for
+(email triage is #1) and the real steps to build it — don't let this line
+go stale without an `openclaw automations list` output backing it up.
+
 ## Vision
 
 The intended architecture:
