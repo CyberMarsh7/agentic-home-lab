@@ -26,59 +26,75 @@ own.
 **Status: not built. No agent has Gmail access configured anywhere in this
 repo's record, and no automation job exists for it.**
 
-**The real mechanism** (verified against docs.openclaw.ai on 2026-09-13,
-sources below — this was never documented in this repo before today):
+**Correction (2026-09-13, same day): the section below this note used to
+describe a generic third-party MCP setup. That was wrong — OpenClaw has a
+*native*, built-in Gmail integration that's simpler and event-driven
+(reacts to new mail in real time, not just on a timer). Verified against
+`docs.openclaw.ai/automation/cron-jobs/gmail` directly.**
 
-1. **Connect Gmail as an MCP server** in OpenClaw's config
-   (`~/.openclaw/openclaw.json` on whichever device runs the gateway for
-   this agent — Pyramid, per the "front door" vision):
+**The real mechanism:**
+
+1. **One-command setup** — this handles Google auth, Pub/Sub
+   infrastructure, and the Gmail preset mapping automatically:
+   ```bash
+   openclaw webhooks gmail setup --account <bret's-email>@gmail.com
+   ```
+   (Needs `gcloud auth login` and a GCP project set first —
+   `gcloud config set project <project-id>`.)
+
+2. **Create a dedicated, deliberately restricted agent** for reading mail
+   — not one of the general-purpose agents, and NOT given filesystem/exec
+   access, just enough to read and reason about a message:
    ```json5
-   mcp: {
-     servers: {
-       gmail: {
-         transport: "stdio", // or "sse" / "streamable-http" depending on the Gmail MCP server used
-         command: "...",     // the Gmail MCP server's launch command
-         args: ["..."],
-         enabled: true,
-         toolFilter: {
-           // scope this down deliberately — an email agent probably
-           // does NOT need send/delete access, only read/search
-           include: ["gmail_search*", "gmail_read*", "gmail_list*"]
+   agents: {
+     entries: {
+       mail_reader: {
+         workspace: "~/.openclaw/workspace-mail-reader",
+         sandbox: { mode: "all", scope: "session", workspaceAccess: "none" },
+         tools: {
+           profile: "minimal",
+           allow: ["session_status"],
+           deny: ["group:fs", "group:runtime", "group:web"]
          }
        }
      }
    }
    ```
-   Also addable via the Control UI: Settings → MCP → Add server.
 
-2. **Give one specific agent access to it**, not every agent, via that
-   agent's tool allowlist:
+3. **Wire new mail to that agent** via a hook mapping — this is what makes
+   it event-driven (fires per email) rather than a polling cron job:
    ```json5
-   agents: {
-     entries: {
-       "email-helper": {
-         tools: { allow: ["gmail_*"] }
-       }
-     }
+   hooks: {
+     allowedAgentIds: ["mail_reader"],
+     mappings: [{
+       match: { path: "gmail" },
+       agentId: "mail_reader",
+       forEach: "messages",
+       sessionKey: "hook:gmail:{{messages[0].id}}",
+       deliver: false   // set true once ready to actually notify Bret per message
+     }]
    }
    ```
+   Each new email gets its own isolated sandboxed run — one email can't see
+   another's context.
 
-3. **Schedule the recurring check** — this is the actual "cron job" piece
-   that's been missing the whole time:
+4. **Point the agent at a model:**
    ```bash
-   openclaw automations create "0 7,12,17 * * *" \
-     "Check my inbox for anything I actually need to see or act on today. Summarize it plainly, skip anything routine." \
-     --name "email-triage" --agent email-helper --deliver \
-     --reply-channel <whichever channel reaches Bret> --session isolated
+   openclaw models auth --agent mail_reader login --provider anthropic
+   openclaw models status --agent mail_reader --check --probe
    ```
-   Three times a day (7am/noon/5pm) is a starting guess — change the cron
-   expression once Bret says what cadence he actually wants.
 
-4. **Verify it's real, not assumed:**
+5. **Verify it's real, not assumed** — send a test email and confirm a run
+   actually happened:
    ```bash
    openclaw automations list
-   openclaw automations get <jobId>   # confirm lastRun actually happened
+   openclaw logs --agent mail_reader
    ```
+
+If real-time-per-email turns out to be too chatty, a scheduled digest
+instead (`openclaw automations create "0 7,12,17 * * *" ... --agent
+mail_reader`) is the fallback — but try the native event-driven path
+first, since it's the one OpenClaw actually built for this.
 
 **Open decisions only Bret can make:**
 - Which Gmail account(s) — his own, or also a shared family one?
