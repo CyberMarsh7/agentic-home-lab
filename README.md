@@ -7,13 +7,15 @@ to fix it.
 
 ## The actual goal (read this before anything else)
 
-Bret cannot type — it physically hurts. **Every agent, every interface, every
-setup step in this lab must be usable entirely by voice, with no typing and
-no precise clicking required.** This isn't a nice-to-have; it's the reason
-the whole lab exists, built for his wife and kids too. If a fix, a doc, or
-a setup step assumes typing, it's not done yet — it needs a voice-first path
-before it counts as finished. When in doubt, optimize for "can Bret just
-talk to it," not for technical completeness.
+Bret cannot type, physically — not "it's uncomfortable," not "he'd rather
+not." **Every agent, every interface, every setup step in this lab must be
+usable entirely by voice, with zero typing and zero precise clicking,
+ever.** This isn't a nice-to-have; it's the reason the whole lab exists,
+built for his wife and kids too. If a fix, a doc, or a setup step assumes
+typing or clicking as a fallback "if voice doesn't work," it's not done —
+it needs a real voice-only path before it counts as finished. When in
+doubt, optimize for "can Bret just talk to it, start to finish," not for
+technical completeness.
 
 ## Golden rule: give agents jobs, don't do their jobs for them
 
