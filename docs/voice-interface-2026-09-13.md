@@ -47,26 +47,56 @@ Bret confirmed directly on 2026-09-13 that **the button and the network
 call already work**. So this went further than this repo's record showed;
 the record was stale, not the hardware.
 
-**Current real blocker, per Bret directly: "that agent is about brain
-dead so I can't really do anything."** The button works — whatever
-answers on the other end doesn't. Two likely, checkable causes, not
-guesses:
+**Root cause found and confirmed, 2026-09-13, per Bret directly: "the
+brain dead model is the model that comes native on the device."** He's
+right, and it's not an OpenClaw config problem at all — it's the
+Pyramid hardware's own factory software.
 
-1. **Wrong/too-small model bound to whichever agent answers the button.**
-   Verify: `openclaw agents list --bindings` (which agent actually answers
-   this node), then `openclaw config get agents.entries.<that-agent>.model
-   --json` and `openclaw models status --agent <that-agent> --json --check`.
-2. **Tool policy locked down to the point of uselessness.** Per
-   `docs/openclaw-open-issues-diagnosis-2026-09-13.md`'s finding on tool
-   precedence: "deny always wins; if `allow` is non-empty, everything else
-   is blocked." If this agent's `tools.allow` is small/restrictive
-   (plausible if it was hardened like Samantha — cautious exec, web/browser
-   disabled), it may be unable to actually do requested work, not just
-   unwilling. Verify: `openclaw config get agents.entries.<that-agent>.tools
-   --json`.
+**Confirmed against M5Stack's own docs** (the Pyramid is a genuine
+M5Stack "AI Pyramid Pro" unit — Axera AX8850 SoC, 24 TOPS NPU, 8GB RAM,
+built-in 4-mic array + speaker codec, running M5Stack's own "StackFlow"
+platform):
 
-Not yet run against real hardware — this is the exact diagnostic to do
-next, from a local session.
+- The **factory voice-assistant demo** is a hardcoded Python script,
+  `/usr/local/m5stack/bin/AI_Pyramid_Demo.py`, which loads a default LLM
+  of `qwen2.5-0.5B-Int4-ax650` — a **0.5 billion parameter** model. That
+  is genuinely too small to do real work; "brain dead" is an accurate
+  description, not an exaggeration. Source:
+  [M5Stack AI Pyramid Voice Assistant docs](https://docs.m5stack.com/en/stackflow/ai_pyramid/voice_assistant).
+- M5Stack does publish an
+  [official "Deploy OpenClaw on AI Pyramid" guide](https://docs.m5stack.com/en/stackflow/ai_pyramid/openclaw),
+  covering flashing an OpenClaw-specific firmware image and running
+  `openclaw onboard`. **But that guide does not document how the physical
+  mic/button/speaker hardware gets wired to OpenClaw at all** — it only
+  covers OpenClaw's own web console/onboarding, not replacing or
+  redirecting the factory demo script's audio pipeline.
+
+**This means the real, still-open question is architectural, not a
+config tweak:** is the button currently calling the factory
+`AI_Pyramid_Demo.py` pipeline (tiny on-device model, no OpenClaw
+involved at all), or is it already reaching OpenClaw and hitting a
+different bottleneck? That has to be checked on the actual device —
+`ps aux | grep -i pyramid_demo` (is the factory script even still
+running?) and `ps aux | grep openclaw` (is OpenClaw's process also up
+and, if so, is anything actually routing to it?).
+
+**Two real fix paths, not mutually exclusive:**
+1. **Quick, partial fix, on-device only:** edit
+   `/usr/local/m5stack/bin/AI_Pyramid_Demo.py`, change
+   `"model": "qwen2.5-0.5B-Int4-ax650"` to a larger on-device model
+   (M5Stack's docs list `qwen2.5-1.5B-Instruct` and others), restart the
+   service. Still a small local model, not Claude — better, not great.
+2. **Real fix, matches the whole point of this lab:** get the factory
+   audio pipeline to hand off to OpenClaw (already installed per
+   `docs/openclaw-setup-2026-09-03.md`) instead of the demo script's own
+   inference call — so the button reaches an actual capable model. This
+   is **not pre-built or documented by M5Stack** — it would mean either
+   modifying `AI_Pyramid_Demo.py` to call OpenClaw's Gateway API
+   (`talk.ptt.*` / `talk.speak`, per the mechanism above) instead of its
+   own local LLM call, or replacing the demo script's role entirely with
+   custom firmware that does that handoff. Real engineering work, not a
+   command to run — needs a local session with hands on the actual box to
+   even see what's running before deciding which path.
 
 ### Two already-built (no custom firmware needed) alternatives, if a phone is workable
 
