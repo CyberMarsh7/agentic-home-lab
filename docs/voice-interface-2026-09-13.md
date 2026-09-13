@@ -9,6 +9,19 @@ boards were bought and plugged into Pyramid (per
 `docs/session-notes/2026-08-25-session-summary.md`) — confirmed by Bret
 directly on 2026-09-13.
 
+**Two independent reasons the button is a hard requirement, not a
+preference — per Bret directly, 2026-09-13:**
+1. Physical — can't type or click precisely.
+2. Environmental — the house is loud (kids). Wake-word listening would be
+   unreliable in both directions here: false-triggering on unrelated
+   noise/conversation, and/or failing to hear the actual wake word over
+   the background noise. This isn't a privacy preference on top of the
+   physical one — a noisy household makes always-listening genuinely
+   worse at its job, not just unwanted. **Do not propose wake-word
+   listening as a solution or fallback for this lab, ever, even
+   temporarily.** Push-to-talk is the only interaction model that works
+   here, full stop.
+
 ## What OpenClaw actually supports (verified against docs.openclaw.ai)
 
 **Wake-word listening (`voicewake`) and push-to-talk (`talk.ptt.*`) are

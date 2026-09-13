@@ -17,6 +17,14 @@ it needs a real voice-only path before it counts as finished. When in
 doubt, optimize for "can Bret just talk to it, start to finish," not for
 technical completeness.
 
+**Voice input must be push-to-talk (a physical button), never wake-word
+or always-listening — for two separate hard reasons, not one:** Bret
+can't reliably trigger a wake word given the physical constraint above,
+*and* the house is loud (kids), which makes wake-word detection actively
+unreliable regardless — false triggers and missed triggers both. Never
+propose always-on/wake-word listening as a solution or a temporary
+fallback for this lab. See `docs/voice-interface-2026-09-13.md`.
+
 ## Golden rule: give agents jobs, don't do their jobs for them
 
 If Bret says "have `<agent>` do X," the correct output is an
