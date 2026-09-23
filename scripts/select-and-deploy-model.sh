@@ -35,20 +35,26 @@ while [[ $# -gt 0 ]]; do
 done
 
 detect_vram_gb() {
+  # Prints "<method>|<GB>" - callers split on the pipe. Order matters:
+  # dedicated GPU first, then Apple's unified memory, then plain Linux
+  # RAM as the catch-all for everything with no GPU at all - this is the
+  # path a RasPad or PineTab2 (both ARM, no discrete GPU) will always hit.
   if command -v nvidia-smi >/dev/null 2>&1; then
     local mib
     mib=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -n1)
     if [[ -n "${mib:-}" ]]; then
-      echo "$(( mib / 1024 ))"
+      echo "nvidia-gpu-vram|$(( mib / 1024 ))"
       return 0
     fi
   fi
   if command -v sysctl >/dev/null 2>&1 && sysctl -n hw.memsize >/dev/null 2>&1; then
     # Apple Silicon: unified memory, treat as VRAM-equivalent minus a
-    # safety margin for the OS itself.
+    # safety margin for the OS itself. (Linux also ships a `sysctl`
+    # binary, but hw.memsize isn't a real key there, so this check
+    # naturally fails and falls through - verified in this sandbox.)
     local bytes
     bytes=$(sysctl -n hw.memsize)
-    echo "$(( bytes / 1024 / 1024 / 1024 - 4 ))"
+    echo "apple-unified-memory|$(( bytes / 1024 / 1024 / 1024 - 4 ))"
     return 0
   fi
   if [[ -r /proc/meminfo ]]; then
@@ -56,13 +62,17 @@ detect_vram_gb() {
     kib=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
     # No dedicated GPU detected - fall back to system RAM, minus a
     # safety margin, since a local model here would be CPU/NPU-bound.
-    echo "$(( kib / 1024 / 1024 - 2 ))"
+    # This is the RasPad / PineTab2 / any other ARM-SBC path.
+    echo "linux-ram-fallback|$(( kib / 1024 / 1024 - 2 ))"
     return 0
   fi
-  echo "0"
+  echo "unknown|0"
 }
 
-VRAM_GB=$(detect_vram_gb)
+DETECTION=$(detect_vram_gb)
+DETECT_METHOD="${DETECTION%%|*}"
+VRAM_GB="${DETECTION##*|}"
+echo "Detection method: ${DETECT_METHOD}"
 echo "Detected usable compute: ${VRAM_GB} GB"
 
 if ! command -v python3 >/dev/null 2>&1; then
