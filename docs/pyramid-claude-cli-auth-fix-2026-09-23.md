@@ -53,6 +53,50 @@ the current shell: `.bashrc`/`.profile`, or a `settings.json`'s `env`
 block (`~/.claude/settings.json`) — the env var and settings.json paths
 both count, and either one re-sets it on the next shell/session.
 
+## Confirmed working: Pyramid's Tailscale HTTPS setup
+
+While debugging this, Bret found a real, valid, currently-active TLS
+certificate for `pyramid-openclaw-1.tail2f8a97.ts.net`, issued by Let's
+Encrypt (valid 2026-09-22 through 2026-12-21). This confirms Pyramid's
+OpenClaw gateway already has Tailscale's HTTPS serving configured
+correctly — a real positive signal, unrelated to the login issue above.
+
+**Important limitation, so this isn't mistaken for a way around the
+cloud-session access wall:** a `.ts.net` hostname only resolves and
+routes for devices that are actual authenticated members of that
+specific Tailscale tailnet. It is not a public internet address, even
+though it carries a normal-looking publicly-trusted certificate — no
+cloud session (this one or any other) can reach it just by knowing the
+hostname.
+
+## The actual next step after login works: Remote Control
+
+Once Claude Code is logged in on Pyramid (or Victus), running
+`claude remote-control` there makes that session reachable from
+claude.ai/code or the Claude phone app — with **real** access, because
+it's the same physical process running on that machine, just viewable
+remotely. This is the real fix for "someone has to relay commands back
+and forth between Bret and a cloud session":
+
+```bash
+claude remote-control
+```
+
+It prints a URL and a QR code directly in that terminal. Scan the QR
+code with the Claude phone app (or open the URL in any browser signed
+into the same account), and that phone/browser is now talking to a
+session with real hands on that machine — no cloud session, no relay,
+no address to hand anyone.
+
+Requirements (verified against docs.claude.com/remote-control):
+- A Pro, Max, Team, or Enterprise claude.ai subscription (not an API key)
+- Must be signed in via `/login` with a full-scope session, not a
+  long-lived `setup-token` (those can only make model requests, not
+  start Remote Control)
+- Run it from inside a real project directory (a workspace-trust dialog
+  has to be accepted there at least once first)
+
 ## Sources (fetched live, 2026-09-23)
 
 - [Claude Code authentication docs](https://code.claude.com/docs/en/authentication)
+- [Claude Code Remote Control docs](https://code.claude.com/docs/en/remote-control)
