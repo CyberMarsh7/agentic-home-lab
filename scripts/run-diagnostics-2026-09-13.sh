@@ -19,6 +19,26 @@ OPENCLAW_BIN="/root/.npm-global/lib/node_modules/openclaw/dist/index.js"
 
 section() { echo; echo "=================================================="; echo "== $1"; echo "=================================================="; }
 
+section "0a. PYRAMID: duplicate OpenClaw install/lock check (the restart-every-10s issue)"
+ssh -i "$PYRAMID_KEY" "$PYRAMID_HOST" '
+  echo "--- all openclaw processes ---"
+  ps aux | grep -i openclaw | grep -v grep
+  echo "--- every openclaw binary on PATH ---"
+  which -a openclaw
+  echo "--- registered services ---"
+  sudo systemctl list-units 2>/dev/null | grep -i openclaw
+  echo "--- what is bound to :18789 ---"
+  sudo lsof -i :18789 2>/dev/null || sudo ss -tlnp 2>/dev/null | grep 18789
+  echo "--- lock dir ---"
+  ls -la "${OPENCLAW_STATE_DIR:-$HOME/.openclaw/state}/tmp/" 2>/dev/null
+'
+
+section "0b. VICTUS: same duplicate/lock check, run locally"
+ps aux | grep -i openclaw | grep -v grep
+which -a openclaw
+lsof -i :18789 2>/dev/null || ss -tlnp 2>/dev/null | grep 18789
+ls -la "${OPENCLAW_STATE_DIR:-$HOME/.openclaw/state}/tmp/" 2>/dev/null
+
 section "1. PYRAMID: is the factory demo or OpenClaw actually answering the button?"
 ssh -i "$PYRAMID_KEY" "$PYRAMID_HOST" '
   echo "--- factory demo process ---"
@@ -53,6 +73,7 @@ echo
 echo "=================================================="
 echo "Done. Paste everything above into a Claude Code session"
 echo "(this repo cloned) and ask it to compare the results against"
-echo "docs/openclaw-open-issues-diagnosis-2026-09-13.md and"
+echo "docs/openclaw-open-issues-diagnosis-2026-09-13.md,"
+echo "docs/gateway-crash-loop-2026-09-23.md, and"
 echo "docs/voice-interface-2026-09-13.md, then propose exact fixes."
 echo "=================================================="
