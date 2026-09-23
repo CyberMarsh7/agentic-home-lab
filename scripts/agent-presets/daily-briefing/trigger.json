@@ -1,0 +1,6 @@
+{
+  "_comment": "Real cron job, same verified syntax pattern as gateway-health-watch.",
+  "type": "cron",
+  "setup_command": "openclaw automations add --cron \"0 7 * * *\" --message \"Give today's briefing per your AGENTS.md\" --agent __AGENT_ID__ --session isolated --announce --channel <bret's-reachable-channel> --to <bret's-id>",
+  "note": "7am daily is a starting guess - change the cron expression once Bret says what time actually fits."
+}

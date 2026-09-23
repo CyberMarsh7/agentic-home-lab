@@ -144,5 +144,10 @@ d = json.load(open('$TRIGGER'))
 print('  Type:', d['type'])
 if 'setup_command' in d:
     print('  Setup:', d['setup_command'])
+if 'setup_commands' in d:
+    for i, cmd in enumerate(d['setup_commands'], 1):
+        print(f'  Setup {i}:', cmd)
+if 'note' in d:
+    print('  Note:', d['note'])
 "
 fi

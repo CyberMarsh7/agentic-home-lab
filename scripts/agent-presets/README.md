@@ -19,12 +19,15 @@ is always separate and explicit, never assumed.
 | `installer` | Installs software from GitHub or a package manager | Real exec + write, gated on approval | On-demand, always one-off |
 | `esp32-node` | Not its own agent — pairs a bare physical button to an *existing* agent | N/A (binding, not a new agent) | Node pairing (`devices approve` + `nodes approve`) |
 | `stackchan` | Full embodied unit — camera, servo, speaker, expressions | Stackchan MCP tools only, still no fs/exec/web | Node pairing + its own dedicated agent per physical unit |
+| `gateway-health-watch` | Watches for the crash-loop pattern from `docs/gateway-crash-loop-2026-09-23.md`, silent unless something's wrong | Exec, but `allowlist`-scoped to read-only diagnostic commands only (see note below) | Real cron, every 15 min |
+| `daily-briefing` | Summarizes recent memory notes once a day | Read-only, no exec at all | Real cron, once daily |
 
 ## Safety pattern, stated once so it doesn't get diluted per-role
 
 Two tiers, on purpose:
 - **Read-only roles** (email, texts, stackchan) get `deny: [group:fs, group:runtime, group:web]` — they cannot do anything destructive even if asked to, by design.
 - **Roles that touch the system** (system-updates-*, installer) get real `exec`, but `tools.exec.mode: "ask"` — every single command needs Bret's approval. Never flip this to `"allowlist"` or unrestricted without a specific, considered reason; package managers and installers can break a running machine.
+- **One deliberate exception: `gateway-health-watch`.** It runs unattended on a cron schedule, so `"ask"` would just hang forever with nobody there to approve it. It uses `"allowlist"` instead, restricted to genuinely read-only diagnostic commands (`gateway status`, `doctor`, `ps`, a port check) — nothing destructive is on that list. This is the specific, considered reason the rule above allows for, not a loosened default to copy elsewhere.
 
 ## Adding a new role
 
