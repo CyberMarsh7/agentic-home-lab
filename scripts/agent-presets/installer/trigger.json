@@ -1,0 +1,5 @@
+{
+  "_comment": "Always on-demand - installing something is inherently a one-off request, never scheduled.",
+  "type": "manual-dispatch",
+  "dispatch_command": "openclaw agent --agent __AGENT_ID__ --message \"install <thing>, from <where>\""
+}
