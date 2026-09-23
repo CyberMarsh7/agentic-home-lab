@@ -1,0 +1,11 @@
+{
+  "_comment": "Models expected to live on the portable SSD, largest-to-smallest. min_vram_gb is a conservative Q4-quantization estimate (roughly 1GB per 1B params, plus headroom for context) - verify against `ollama show <model>` once the model is actually pulled, these are planning numbers, not measured ones.",
+  "models": [
+    { "name": "qwen2.5:32b-instruct", "min_vram_gb": 24, "role": "heaviest reasoning, Victus GPU only" },
+    { "name": "qwen2.5:14b-instruct", "min_vram_gb": 10, "role": "strong general reasoning" },
+    { "name": "qwen2.5:7b-instruct",  "min_vram_gb": 6,  "role": "solid general assistant" },
+    { "name": "qwen2.5:3b-instruct",  "min_vram_gb": 3,  "role": "current Samantha baseline (Victus, proven working)" },
+    { "name": "qwen2.5:1.5b-instruct","min_vram_gb": 2,  "role": "light tasks, small boards" },
+    { "name": "qwen2.5-0.5b-int4",    "min_vram_gb": 1,  "role": "Pyramid's factory demo model - only if nothing else fits" }
+  ]
+}
