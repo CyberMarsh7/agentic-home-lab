@@ -1,0 +1,17 @@
+{
+  "_comment": "Victus-only (the one Windows machine). Same exec-ask safety posture as the Linux update agent - never loosen this without a real reason.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "off" },
+        "tools": {
+          "allow": ["exec", "read"],
+          "deny": ["group:web", "browser"],
+          "exec": { "mode": "ask" }
+        }
+      }
+    }
+  }
+}

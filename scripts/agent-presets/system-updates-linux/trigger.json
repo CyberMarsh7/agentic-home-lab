@@ -1,0 +1,6 @@
+{
+  "_comment": "On-demand only, not scheduled - checking for updates is safe to automate, but applying them unattended on a machine Bret depends on (Pyramid, Kali Pi) is not something to schedule blind. Dispatch by voice/CLI when wanted.",
+  "type": "manual-dispatch",
+  "dispatch_command": "openclaw agent --agent __AGENT_ID__ --message \"check for and report available updates\"",
+  "optional_weekly_check_only": "openclaw automations add --cron \"0 8 * * 1\" --message \"check for available updates and report - do not apply\" --agent __AGENT_ID__ --session isolated"
+}

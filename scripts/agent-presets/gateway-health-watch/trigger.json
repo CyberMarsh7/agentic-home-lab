@@ -1,0 +1,12 @@
+{
+  "_comment": "Real cron job, verified syntax against docs/openclaw-automation-concepts-2026-09-13.md. Deliver-on-failure only - a healthy gateway should never generate a notification.",
+  "type": "cron",
+  "setup_commands": [
+    "openclaw approvals allowlist add \"openclaw gateway status*\"",
+    "openclaw approvals allowlist add \"openclaw doctor*\"",
+    "openclaw approvals allowlist add \"ps aux*\"",
+    "openclaw approvals allowlist add \"ss -tlnp*\"",
+    "openclaw automations add --cron \"*/15 * * * *\" --message \"Run the gateway health check per your AGENTS.md. Stay silent if healthy.\" --agent __AGENT_ID__ --session isolated --announce --channel <bret's-reachable-channel> --to <bret's-id>"
+  ],
+  "note": "The --announce/--channel/--to placeholders need Bret's actual reachable channel (phone/companion app) filled in per docs.openclaw.ai/automation/cron-jobs/delivery - not guessed here."
+}
