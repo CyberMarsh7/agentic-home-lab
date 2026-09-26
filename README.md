@@ -39,16 +39,18 @@ doc above before touching any agent-dispatch task.
 
 | Device | Role | Reachable at | Notes |
 |---|---|---|---|
-| **Victus** | Main machine (Windows laptop, RTX 4050 / 6GB VRAM) | local | Runs its **own OpenClaw gateway** (hosts Samantha, hermes), plus Ollama (local models) and Claude Code installed locally. Pyramid is physically docked into it |
-| **Pyramid** (aka "Oracle") | Gateway — everything routes through this first | `192.168.1.227`, SSH as `marshinpyramid` | Runs its **own OpenClaw gateway**. Two installs exist on disk — always use the explicit path `/root/.npm-global/lib/node_modules/openclaw/dist/index.js`, not the stale `/usr/bin/openclaw`. No monitor attached; managed headlessly over SSH or the Control UI at `http://192.168.1.227:18789` |
+| **Victus** (aka "Virgil") | Main machine (Windows laptop, RTX 4050 / 6GB VRAM) | local, + Tailscale | Runs its **own OpenClaw gateway** (hosts Samantha and Hermes), plus Ollama (local models) and Claude Code installed locally. Pyramid is physically docked into it |
+| **Pyramid** (aka "Oracle", aka "Dante") | Gateway — everything routes through this first | `192.168.1.227`, SSH as `marshinpyramid`, + Tailscale | Runs its **own OpenClaw gateway**. Two installs exist on disk — always use the explicit path `/root/.npm-global/lib/node_modules/openclaw/dist/index.js`, not the stale `/usr/bin/openclaw`. No monitor attached; managed headlessly over SSH or the Control UI at `http://192.168.1.227:18789` |
 | **Kali Pi** | Security-tooling agent (Raspberry Pi, genuine Kali Linux) | `marshinpi-1` on Tailscale | No GPU/NPU, 921MB RAM — routes model inference to Victus's Ollama over Tailscale |
 | Old Kali box | Possibly superseded by the Kali Pi above, unconfirmed | `192.168.1.117` | Never confirmed reachable — needs clarifying |
 
 ## Agents
 
 - **Samantha** — runs on Victus, local model (`qwen2.5:3b-instruct`), security-hardened (web/browser tools disabled, cautious exec policy). Do not swap her to a cloud model without deciding that on purpose.
-- **hermes** — also on Victus, currently stopped (was competing with Samantha for GPU memory). Config is lightened for whenever it's restarted.
-- **claude** — being added to the Pyramid gateway alongside Samantha, backed by Claude (`claude-cli/claude-opus-5`), reusing the local Claude Code subscription login rather than a separate API key. See `docs/openclaw-setup-2026-09-03.md`.
+- **Hermes** — also on Victus. Rebuilt as **master orchestrator** over both OpenClaw gateways (Victus and Pyramid), backed by `claude-cli/claude-opus-5` (not a local model, so it can't repeat the GPU contention that got it stopped before). Creates/edits/removes scheduled jobs on Bret's behalf on either gateway and routes visual/vision tasks to Oracle on Pyramid. See `docs/hermes-orchestrator-rebuild-2026-09-15.md`.
+- **Oracle / claude** — runs on the Pyramid gateway, backed by Claude (`claude-cli/claude-opus-5`), reusing the local Claude Code subscription login rather than a separate API key. Keeps the Pyramid's visual/vision skill set. See `docs/openclaw-setup-2026-09-03.md`.
+
+Run `scripts/fleet-status.sh` from Victus any time to see which agents are actually live on each gateway vs. what's expected — the orphaned-instance check.
 
 **Recurring jobs (`openclaw automations`, i.e. cron jobs) configured on any
 agent above: NONE, as of 2026-09-13.** Every agent here is a slot that
