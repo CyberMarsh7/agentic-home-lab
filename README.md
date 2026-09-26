@@ -43,11 +43,27 @@ The intended architecture:
   knowing its own isolated piece.
 - **Why OpenClaw runs on both Victus and Pyramid:** having a gateway on each
   side makes it easier for them to talk to each other directly, and lets
-  work get shared between them in a **carousel/rotation fashion** — passing
-  a task back and forth between devices rather than one always carrying it
-  alone.
+  work get shared between them.
 
-Real, worth doing, still in progress — not yet built, this is the target.
+**Update (2026-09-25): the agent-to-agent piece is now real, not just
+aspirational.** Victus and Pyramid are configured as mutual **A2A
+(Agent2Agent) peers** — each keeps its own independent gateway/agent, and
+either side can hand a task directly to the other over an authenticated
+channel (`openclaw agent --channel a2a --to <peer> --message "..."
+--deliver`), verified working both directions. See
+`docs/session-notes/2026-09-25-a2a-clustering.md` for how it was set up.
+
+The division of labor is **not** an even carousel — it's role-based:
+**Pyramid** is the artistic/light-agent side (vision-oriented and creative
+work, plus whatever MCP servers get built for the ESP32-S3/Stackchan
+hardware); **Victus** is the heavy horse (anything needing real reasoning
+weight or larger models, via its GPU). Pyramid hands heavy work to Victus
+far more often than the reverse.
+
+Still not fully built: the front-door/fallback behavior above (Pyramid as
+Bret's primary voice interface, with automatic failover) hasn't been wired
+up yet — A2A is the transport layer that makes it *possible*, not the whole
+vision realized.
 
 ## Docs in this repo
 
