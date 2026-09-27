@@ -1,0 +1,17 @@
+{
+  "_comment": "Runs unattended on a schedule - 'exec.mode: ask' would just hang forever with nobody there to approve it, so this is the one role that deliberately uses 'allowlist' instead, restricted to genuinely read-only diagnostic commands. That's the specific, considered exception the other exec-capable presets warn against, not a loosened default.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "off" },
+        "tools": {
+          "allow": ["exec", "read"],
+          "deny": ["group:web", "browser", "write"],
+          "exec": { "mode": "allowlist" }
+        }
+      }
+    }
+  }
+}

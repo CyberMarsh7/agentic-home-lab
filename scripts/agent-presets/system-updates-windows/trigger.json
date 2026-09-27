@@ -1,0 +1,5 @@
+{
+  "_comment": "On-demand only, same reasoning as the Linux update agent - applying updates unattended on Victus is not something to schedule blind.",
+  "type": "manual-dispatch",
+  "dispatch_command": "openclaw agent --agent __AGENT_ID__ --message \"check for and report available Windows updates\""
+}

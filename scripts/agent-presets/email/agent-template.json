@@ -1,0 +1,17 @@
+{
+  "_comment": "One preset per role, not one per model. The model and agent-id placeholders get filled in at deploy time by select-and-deploy-model.sh --role. Tool policy matches the mail_reader spec already decided in docs/agent-jobs-backlog-2026-09-13.md - deliberately minimal, no fs/exec/web.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "all", "scope": "session", "workspaceAccess": "none" },
+        "tools": {
+          "profile": "minimal",
+          "allow": ["session_status"],
+          "deny": ["group:fs", "group:runtime", "group:web"]
+        }
+      }
+    }
+  }
+}

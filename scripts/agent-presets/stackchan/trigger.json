@@ -1,0 +1,11 @@
+{
+  "_comment": "Same node-pairing flow as a bare ESP32 button, but this device gets its OWN dedicated agent (this preset) instead of binding to an existing one, since it needs the stackchan MCP tools nothing else has.",
+  "type": "node-pairing-plus-dedicated-agent",
+  "steps": [
+    "1. Pair the physical unit - same steps as scripts/agent-presets/esp32-node/trigger.json.",
+    "2. Deploy this preset with a unique __AGENT_ID__ per physical unit (e.g. stackchan-bret, stackchan-family).",
+    "3. Start the stackchan-mcp bridge server for that unit (see docs/stackchan-mcp-and-memory-2026-09-03.md - needs its own .env with that robot's IP, host IP, Fish Audio key).",
+    "4. Bind that node to this agent, same pattern as esp32-node/trigger.json's bind_to_existing_agent, pointed at THIS agent's id instead."
+  ],
+  "open_question": "Not yet verified: exact tool names the stackchan-mcp bridge actually exposes. Confirm with the bridge's own docs or `openclaw mcp list-tools` once connected, before trusting the mcp:stackchan_* allow pattern in agent-template.json."
+}

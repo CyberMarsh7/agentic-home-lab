@@ -1,0 +1,17 @@
+{
+  "_comment": "Installs software: clone/build from GitHub, or use the local package manager. Real exec + git access, exec still gated on 'ask' - installing something new is exactly the kind of one-off, unpredictable command that should never be pre-allowlisted.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "off" },
+        "tools": {
+          "allow": ["exec", "read", "write"],
+          "deny": ["group:web", "browser"],
+          "exec": { "mode": "ask" }
+        }
+      }
+    }
+  }
+}

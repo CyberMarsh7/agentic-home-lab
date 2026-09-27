@@ -1,9 +1,23 @@
 # Restore agents + upgrade to OpenClaw 2.0 — runbook (2026-09-03)
 
+**Status as of 2026-09-13: no session note anywhere in this repo confirms
+this runbook was actually run.** The three open issues below (Pyramid
+memory, Victus auth, OpenClaw 2.0 update blocker) should be treated as
+still broken until a *local* session reports back concrete verified output
+— not assumed fixed just because a plan for fixing them exists.
+
 Goal: get every agent back for the family, and upgrade Pyramid's gateway to
 OpenClaw 2.0 in place. Run this from the **local** Claude Code session on
 Victus (a cloud/web session has no path to this LAN — see
-`docs/openclaw-setup-2026-09-03.md`).
+`docs/openclaw-setup-2026-09-03.md`). A cloud/web session (like the one that
+wrote this doc) cannot SSH to Pyramid or run commands on Victus, full stop
+— it can only prepare exact commands or update this doc, never claim the
+fix itself happened.
+
+Once agents are restored, use `docs/openclaw-dispatching-jobs-2026-09-13.md`
+to actually hand each one a real task as a smoke test — an agent that
+exists but has never been dispatched a job isn't verified working, it's
+just installed.
 
 Give the whole block below to that local session and let it work through it
 in order — inventory first, so nothing gets rebuilt that isn't actually

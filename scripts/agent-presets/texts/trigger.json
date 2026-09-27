@@ -1,0 +1,6 @@
+{
+  "_comment": "SMS is a channel binding, not a cron or webhook - the SMS plugin must be configured first (provider/number), then this agent binds to it. Not yet set up anywhere in this lab.",
+  "type": "channel-binding",
+  "setup_command": "openclaw plugins install @openclaw/sms   # then configure the SMS provider per docs.openclaw.ai/channels/sms before binding",
+  "binding": { "agentId": "__AGENT_ID__", "match": { "channel": "sms", "accountId": "*" } }
+}

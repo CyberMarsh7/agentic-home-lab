@@ -1,0 +1,13 @@
+{
+  "_comment": "A bare ESP32-S3 push-to-talk button isn't a new agent - it's a physical node that gets bound to whichever agent should answer it (e.g. the existing 'claude' front-door agent on Pyramid). Every new board goes through this same two-step pairing before its talk.ptt.* commands are honored - see docs/voice-interface-2026-09-13.md and docs/gateway-crash-loop-2026-09-23.md's gateway/pairing source.",
+  "type": "node-pairing",
+  "steps": [
+    "1. Flash the board so it calls talk.ptt.start/stop and talk.speak against Pyramid's gateway URL.",
+    "2. openclaw devices list                     # find the new device's pending request",
+    "3. openclaw devices approve <deviceRequestId>",
+    "4. openclaw nodes pending                    # find its capability/command request",
+    "5. openclaw nodes approve <nodeRequestId>",
+    "6. openclaw nodes rename --node <id> --name \"<a real name, e.g. kitchen-button>\""
+  ],
+  "bind_to_existing_agent": "openclaw config set bindings '[{\"agentId\":\"<existing-agent-id>\",\"match\":{\"channel\":\"node\",\"accountId\":\"<node-id-from-step-5>\"}}]'"
+}

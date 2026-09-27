@@ -1,0 +1,16 @@
+{
+  "_comment": "Read-only summary agent - no exec needed at all, just reads its own workspace memory files and reports. Simplest, safest tool policy of any preset here.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "all", "scope": "session", "workspaceAccess": "ro" },
+        "tools": {
+          "allow": ["read", "session_status"],
+          "deny": ["group:exec", "group:web", "browser"]
+        }
+      }
+    }
+  }
+}

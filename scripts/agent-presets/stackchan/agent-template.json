@@ -1,0 +1,26 @@
+{
+  "_comment": "For a full embodied unit (camera, servo, speaker), not a bare button. MCP server config here is a placeholder shape, not yet verified against a real running stackchan-mcp bridge - confirm exact tool names once one is actually connected. Deliberately still no fs/exec/web - a robot body doesn't need shell access.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "all", "scope": "session", "workspaceAccess": "none" },
+        "tools": {
+          "allow": ["session_status", "mcp:stackchan_*"],
+          "deny": ["group:fs", "group:runtime", "group:web"]
+        }
+      }
+    }
+  },
+  "mcp": {
+    "servers": {
+      "__AGENT_ID___stackchan": {
+        "transport": "stdio",
+        "command": "uv",
+        "args": ["run", "stackchan-mcp"],
+        "enabled": true
+      }
+    }
+  }
+}

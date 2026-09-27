@@ -1,0 +1,12 @@
+{
+  "_comment": "Email is event-driven (native Gmail webhook), not a polling cron job - see docs/agent-jobs-backlog-2026-09-13.md. Other roles may use type: cron instead; this file just records which mechanism this role needs so the deploy script (or a human) wires the right one.",
+  "type": "gmail-webhook",
+  "setup_command": "openclaw webhooks gmail setup --account <bret's-email>@gmail.com",
+  "hook_mapping": {
+    "match": { "path": "gmail" },
+    "agentId": "__AGENT_ID__",
+    "forEach": "messages",
+    "sessionKey": "hook:gmail:{{messages[0].id}}",
+    "deliver": false
+  }
+}

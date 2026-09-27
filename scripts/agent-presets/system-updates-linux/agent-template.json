@@ -1,0 +1,17 @@
+{
+  "_comment": "Real shell access - deliberately NOT locked down like email/texts. tools.exec.mode 'ask' means every command needs Bret's approval until specific safe patterns get allowlisted later via 'openclaw approvals allowlist add'. Never set this to 'allowlist' or unrestricted for a system-update agent without a real reason - package managers can break a running system.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "off" },
+        "tools": {
+          "allow": ["exec", "read"],
+          "deny": ["group:web", "browser"],
+          "exec": { "mode": "ask" }
+        }
+      }
+    }
+  }
+}

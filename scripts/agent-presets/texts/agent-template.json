@@ -1,0 +1,20 @@
+{
+  "_comment": "Text/SMS triage, same locked-down shape as the email preset - read and report only, no send capability, no fs/exec/web.",
+  "agents": {
+    "entries": {
+      "__AGENT_ID__": {
+        "workspace": "~/.openclaw/workspace-__AGENT_ID__",
+        "model": "__MODEL__",
+        "sandbox": { "mode": "all", "scope": "session", "workspaceAccess": "none" },
+        "tools": {
+          "profile": "minimal",
+          "allow": ["session_status"],
+          "deny": ["group:fs", "group:runtime", "group:web"]
+        }
+      }
+    }
+  },
+  "bindings": [
+    { "agentId": "__AGENT_ID__", "match": { "channel": "sms", "accountId": "*" } }
+  ]
+}
