@@ -5,7 +5,7 @@ Handles voice requests, routes to agents, returns responses
 Push-to-talk only - fully accessible for voice-only users
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import logging
 import sys
@@ -18,7 +18,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from voice_interface import OpenClawRouter, VoiceInterfaceService
 
-app = Flask(__name__)
+# Flask app with static files
+app = Flask(__name__, static_folder='interface', static_url_path='')
 CORS(app)
 
 logging.basicConfig(level=logging.INFO)
@@ -68,6 +69,19 @@ class CoachAgent:
 
 coach = CoachAgent()
 
+
+# ==================== STATIC FILES ====================
+
+@app.route('/')
+@app.route('/index.html')
+def index():
+    """Serve avatar interface"""
+    return send_from_directory('interface', 'voice-avatar.html')
+
+@app.route('/avatar-voice.js')
+def serve_js():
+    """Serve avatar JavaScript"""
+    return send_from_directory('interface', 'avatar-voice.js')
 
 # ==================== MAIN ENDPOINTS ====================
 
