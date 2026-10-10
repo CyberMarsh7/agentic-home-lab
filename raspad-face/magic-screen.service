@@ -1,0 +1,15 @@
+[Unit]
+Description=Pee-wee's Magic Screen - Voice Avatar Interface
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/user/agentic-home-lab/raspad-face
+Environment="PATH=/home/user/agentic-home-lab/raspad-face/venv/bin"
+ExecStart=/home/user/agentic-home-lab/raspad-face/venv/bin/python /home/user/agentic-home-lab/raspad-face/orchestrator.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

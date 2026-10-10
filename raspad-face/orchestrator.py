@@ -1,7 +1,8 @@
 """
 Orchestrator Service
-Connects RasPad face to clustering backend
+Connects RasPad voice avatar to OpenClaw agents (Hermes, Oracle, Samantha)
 Handles voice requests, routes to agents, returns responses
+Push-to-talk only - fully accessible for voice-only users
 """
 
 from flask import Flask, request, jsonify
@@ -11,12 +12,11 @@ import sys
 import os
 from datetime import datetime
 
-# Add clustering backend to path
+# Add paths
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'clustering', 'backend'))
+sys.path.insert(0, os.path.dirname(__file__))
 
-from memory_manager import MemoryManager
-from model_manager import ModelManager
-from task_router import TaskRouter
+from voice_interface import OpenClawRouter, VoiceInterfaceService
 
 app = Flask(__name__)
 CORS(app)
@@ -24,10 +24,13 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize clustering system
-memory_manager = MemoryManager(redis_host='localhost', redis_port=6379)
-model_manager = ModelManager(ssd_mount_path='/mnt/data')
-task_router = TaskRouter(memory_manager, model_manager)
+# Initialize voice routing system
+logger.info("🎤 Initializing OpenClaw Voice Router...")
+openclaw_router = OpenClawRouter()
+voice_service = VoiceInterfaceService(openclaw_router)
+
+logger.info("✅ Voice Avatar Orchestrator ready")
+
 
 class CoachAgent:
     """Validates requests before processing"""
@@ -35,9 +38,7 @@ class CoachAgent:
     def validate(self, request_text: str, user_context: dict) -> tuple[bool, str]:
         """
         Validate request against safety rules
-
-        Returns:
-            (approved: bool, reason: str)
+        Returns: (approved: bool, reason: str)
         """
 
         # Safety rules
@@ -62,25 +63,31 @@ class CoachAgent:
             if pattern in request_lower:
                 return False, f"Injection attempt detected: {pattern}"
 
-        # All clear
         return True, "Approved"
 
+
 coach = CoachAgent()
+
+
+# ==================== MAIN ENDPOINTS ====================
 
 @app.route('/api/health', methods=['GET'])
 def health():
     """Health check endpoint"""
+    status = voice_service.get_status()
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'system_status': task_router.get_system_status()
+        'agents_online': status['uptime'],
+        'agents_total': status['total']
     })
+
 
 @app.route('/api/orchestrate', methods=['POST'])
 def orchestrate():
     """
     Main orchestration endpoint
-    Receives voice request, validates, routes to agents, returns response
+    Receives voice request, routes to OpenClaw agents, returns response
     """
 
     try:
@@ -90,131 +97,69 @@ def orchestrate():
         if not user_request:
             return jsonify({'error': 'No request provided'}), 400
 
-        logger.info(f"Received request: {user_request}")
+        logger.info(f"🎤 Voice request: {user_request}")
 
-        # Step 1: Generate task ID
-        task_id = f"task_{datetime.now().timestamp()}"
-
-        # Step 2: Determine task type
-        task_type = determine_task_type(user_request)
-        logger.info(f"Task type: {task_type}")
-
-        # Step 3: Coach validation
-        user_context = {'source': 'voice', 'timestamp': datetime.now().isoformat()}
+        # Safety validation
+        user_context = {'source': 'voice-avatar', 'timestamp': datetime.now().isoformat()}
         approved, coach_reason = coach.validate(user_request, user_context)
 
         if not approved:
-            logger.warning(f"Coach rejected: {coach_reason}")
+            logger.warning(f"❌ Coach rejected: {coach_reason}")
             return jsonify({
                 'response': f"I can't do that. {coach_reason}",
                 'status': 'rejected',
                 'reason': coach_reason
             })
 
-        # Step 4: Submit task
-        submit_result = task_router.submit_task(
-            task_id=task_id,
-            task_type=task_type,
-            request={'text': user_request},
-            user_context=user_context
-        )
-
-        # Step 5: Route task
-        route_result = task_router.route_task(
-            task_id=task_id,
-            coach_approved=True
-        )
-
-        if 'error' in route_result:
-            return jsonify({
-                'response': f"Could not route request: {route_result.get('error', 'Unknown error')}",
-                'status': 'failed'
-            })
-
-        # Step 6: Execute task (would happen asynchronously in production)
-        # For now, return a placeholder response
-        response = generate_response(task_type, user_request, route_result)
-
-        # Mark task complete
-        task_router.complete_task(task_id, {'response': response})
-
-        return jsonify({
-            'response': response,
-            'status': 'completed',
-            'task_id': task_id,
-            'device': route_result.get('device'),
-            'model': route_result.get('model')
+        # Process through voice service (routes to correct agent)
+        result = voice_service.process_orchestrate_request({
+            'request': user_request,
+            'context': user_context
         })
 
+        return jsonify(result)
+
     except Exception as e:
-        logger.error(f"Error in orchestration: {e}")
+        logger.error(f"❌ Orchestration error: {e}", exc_info=True)
         return jsonify({
             'error': str(e),
-            'response': "I encountered an error processing your request."
+            'response': "I encountered an error processing your request.",
+            'status': 'error'
         }), 500
+
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
-    """Get current system status"""
-    return jsonify(task_router.get_system_status())
+    """Get current system status (agents and devices)"""
+    return jsonify(voice_service.get_status())
+
 
 @app.route('/api/devices', methods=['GET'])
 def get_devices():
-    """List registered devices"""
+    """List OpenClaw agents (as 'devices' for UI)"""
+    return jsonify(voice_service.get_devices())
+
+
+@app.route('/api/agents', methods=['GET'])
+def get_agents():
+    """List all OpenClaw agents with details"""
     return jsonify({
-        'devices': memory_manager.get_devices(),
+        'agents': openclaw_router.get_agent_info(),
         'timestamp': datetime.now().isoformat()
     })
 
-@app.route('/api/models', methods=['GET'])
-def get_models():
-    """List available models"""
-    return jsonify({
-        'status': model_manager.get_status(),
-        'available_models': model_manager.list_models(),
-        'loaded_models': model_manager.get_loaded_models()
-    })
 
-def determine_task_type(request_text: str) -> str:
-    """Determine what type of task this is"""
-
-    text_lower = request_text.lower()
-
-    if any(word in text_lower for word in ['image', 'picture', 'draw', 'create image']):
-        return 'image'
-    elif any(word in text_lower for word in ['rag', 'search', 'knowledge', 'find']):
-        return 'rag'
-    elif any(word in text_lower for word in ['design', 'layout', 'ui', 'ux']):
-        return 'uxui'
-    elif any(word in text_lower for word in ['think', 'reason', 'calculate', 'solve']):
-        return 'reasoning'
-    elif any(word in text_lower for word in ['security', 'check', 'monitor', 'status']):
-        return 'security'
-    else:
-        return 'voice'  # Default conversational
-
-def generate_response(task_type: str, request_text: str, route_info: dict) -> str:
-    """Generate a response (placeholder - would be real model inference in production)"""
-
-    device = route_info.get('device', 'unknown')
-    model = route_info.get('model', 'default')
-
-    responses = {
-        'image': f"I'll generate an image for you on {device} using {model}.",
-        'rag': f"Searching knowledge base using {model} on {device}...",
-        'uxui': f"Designing layout with {model} on {device}...",
-        'reasoning': f"Reasoning through that using {model} on {device}...",
-        'security': f"Checking system security via {device}...",
-        'voice': f"Got it. I'm processing your request: {request_text[:50]}..."
-    }
-
-    return responses.get(task_type, "Processing your request...")
+# ==================== STARTUP ====================
 
 if __name__ == '__main__':
-    logger.info("Starting Orchestrator service...")
-    logger.info("Memory Manager initialized")
-    logger.info("Model Manager initialized")
-    logger.info("Task Router initialized")
-    logger.info("Coach Agent ready")
+    logger.info("=" * 60)
+    logger.info("🎤 VOICE AVATAR ORCHESTRATOR")
+    logger.info("=" * 60)
+    logger.info("📍 Push-to-talk interface (no wake words, no always-listening)")
+    logger.info("🤖 Routing voice commands to:")
+    logger.info("   • Hermes (master orchestrator)")
+    logger.info("   • Oracle (visual/creative)")
+    logger.info("   • Samantha (security/monitoring)")
+    logger.info("=" * 60)
 
     app.run(host='0.0.0.0', port=5000, debug=False)

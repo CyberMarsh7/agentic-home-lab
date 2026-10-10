@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Avatar - Pee-wee's Magic Screen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a0033 0%, #2d0052 50%, #1a0033 100%);
+        }
+
+        /* Container */
+        .screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Status bar - top */
+        .status-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-size: 14px;
+            z-index: 100;
+            opacity: 0.7;
+        }
+
+        .device-status {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-item.active {
+            background: rgba(100, 200, 100, 0.3);
+            border-color: #64c864;
+        }
+
+        /* Avatar container */
+        .avatar-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* Female avatar face */
+        .face {
+            width: 280px;
+            height: 350px;
+            border-radius: 140px 140px 120px 120px;
+            background: linear-gradient(135deg, #f4a0d8 0%, #d688e8 50%, #c47be8 100%);
+            position: relative;
+            box-shadow: 0 20px 60px rgba(232, 136, 232, 0.6),
+                        0 0 40px rgba(244, 160, 216, 0.4);
+            animation: breathe 3.5s ease-in-out infinite;
+            overflow: hidden;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Blush marks */
+        .blush {
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            background: radial-gradient(ellipse at center, rgba(255, 100, 150, 0.4), transparent);
+            border-radius: 50%;
+        }
+
+        .blush-left {
+            left: 25px;
+            top: 180px;
+            animation: blush-animate 2s ease-in-out infinite;
+        }
+
+        .blush-right {
+            right: 25px;
+            top: 180px;
+            animation: blush-animate 2s ease-in-out infinite 0.5s;
+        }
+
+        @keyframes blush-animate {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Eyes */
+        .eyes {
+            position: absolute;
+            top: 90px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 55px;
+            z-index: 10;
+        }
+
+        .eye {
+            width: 50px;
+            height: 65px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .pupil {
+            width: 28px;
+            height: 28px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Eyelids */
+        .eyelid {
+            position: absolute;
+            width: 50px;
+            height: 65px;
+            background: #f4a0d8;
+            left: 0;
+            top: 0;
+            z-index: 20;
+            border-radius: 50%;
+        }
+
+        .eyelid-top {
+            clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+            animation: blink-top 0.3s ease-out;
+        }
+
+        .eyelid-bottom {
+            clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+            animation: blink-bottom 0.3s ease-out;
+        }
+
+        @keyframes blink-top {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-100%); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes blink-bottom {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(100%); }
+            100% { transform: translateY(0); }
+        }
+
+        .blinking .eyelid-top {
+            animation: blink-top 0.4s ease-out !important;
+        }
+
+        .blinking .eyelid-bottom {
+            animation: blink-bottom 0.4s ease-out !important;
+        }
+
+        /* Nose */
+        .nose {
+            position: absolute;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid rgba(0, 0, 0, 0.1);
+            z-index: 5;
+        }
+
+        /* Mouth */
+        .mouth {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 40px;
+            z-index: 10;
+        }
+
+        .mouth-shape {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .mouth-line {
+            position: absolute;
+            width: 80px;
+            height: 30px;
+            border: 3px solid #c75b8a;
+            border-top: none;
+            border-radius: 0 0 80px 80px;
+            bottom: 0;
+            left: 0;
+        }
+
+        /* Mouth states */
+        .mouth.speaking .mouth-line {
+            animation: mouth-speak 0.3s ease-in-out infinite;
+        }
+
+        @keyframes mouth-speak {
+            0% { height: 30px; }
+            50% { height: 40px; border-radius: 0 0 80px 80px; }
+            100% { height: 30px; }
+        }
+
+        .mouth.happy .mouth-line {
+            height: 35px;
+            border-radius: 0 0 80px 80px;
+        }
+
+        .mouth.surprised .mouth-line {
+            height: 45px;
+            width: 35px;
+            left: 22.5px;
+            border-radius: 50%;
+        }
+
+        .mouth.thinking {
+            opacity: 0.6;
+        }
+
+        .mouth.thinking .mouth-line {
+            animation: mouth-think 2s ease-in-out infinite;
+        }
+
+        @keyframes mouth-think {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.6); }
+        }
+
+        /* Voice indicator - bottom area */
+        .voice-area {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Listening indicator */
+        .listening-indicator {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            height: 50px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .listening-indicator.active {
+            opacity: 1;
+        }
+
+        .listening-bar {
+            width: 6px;
+            background: linear-gradient(to top, #ff69b4, #ff1493);
+            border-radius: 3px;
+            animation: listen 0.6s ease-in-out infinite;
+        }
+
+        .listening-bar:nth-child(1) { animation-delay: 0s; }
+        .listening-bar:nth-child(2) { animation-delay: 0.2s; }
+        .listening-bar:nth-child(3) { animation-delay: 0.4s; }
+        .listening-bar:nth-child(4) { animation-delay: 0.6s; }
+
+        @keyframes listen {
+            0%, 100% { height: 10px; }
+            50% { height: 40px; }
+        }
+
+        /* Control buttons */
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-talk {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            min-width: 200px;
+            font-size: 18px;
+        }
+
+        .btn-talk:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.4);
+        }
+
+        .btn-talk:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, #ff1493, #c71585);
+        }
+
+        .btn-menu {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .btn-menu:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Transcript area */
+        .transcript-area {
+            position: absolute;
+            bottom: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+            color: white;
+            z-index: 40;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transcript {
+            font-size: 16px;
+            line-height: 1.4;
+            opacity: 0.9;
+            margin: 10px 0;
+        }
+
+        .transcript.listening {
+            color: #ffb3d9;
+            font-style: italic;
+        }
+
+        .transcript.processing {
+            color: #ffff99;
+        }
+
+        .transcript.response {
+            color: #b3ffb3;
+        }
+
+        .transcript.error {
+            color: #ff9999;
+        }
+
+        /* Thinking animation */
+        .thinking-dots {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .thinking-dots span {
+            animation: dot-bounce 1.4s infinite;
+            margin: 0 2px;
+        }
+
+        .thinking-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .thinking-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dot-bounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+            40% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* Mobile/touch optimizations */
+        @media (max-height: 600px) {
+            .face {
+                width: 200px;
+                height: 250px;
+            }
+
+            .btn-talk {
+                padding: 12px 25px;
+                font-size: 16px;
+                min-width: 150px;
+            }
+
+            .status-bar {
+                font-size: 12px;
+            }
+        }
+
+        /* Accessibility: high contrast mode */
+        @media (prefers-contrast: more) {
+            .face {
+                box-shadow: 0 0 0 3px white, 0 20px 60px rgba(232, 136, 232, 0.6);
+            }
+
+            .btn {
+                border: 2px solid white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status bar -->
+        <div class="status-bar">
+            <div>Magic Screen Active</div>
+            <div class="device-status">
+                <div class="status-item" id="hermes-status">Hermes: Ready</div>
+                <div class="status-item" id="oracle-status">Oracle: Ready</div>
+                <div class="status-item" id="samantha-status">Samantha: Ready</div>
+            </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="avatar-area">
+            <div class="face" id="face">
+                <!-- Blush -->
+                <div class="blush blush-left"></div>
+                <div class="blush blush-right"></div>
+
+                <!-- Eyes -->
+                <div class="eyes">
+                    <div class="eye">
+                        <div class="pupil"></div>
+                        <div class="eyelid eyelid-top"></div>
+                        <div class="eyelid eyelid-bottom"></div>
+                    </div>
+                    <div class="eye">
+                        <div class="pupil"></div>
+                        <div class="eyelid eyelid-top"></div>
+                        <div class="eyelid eyelid-bottom"></div>
+                    </div>
+                </div>
+
+                <!-- Nose -->
+                <div class="nose"></div>
+
+                <!-- Mouth -->
+                <div class="mouth" id="mouth">
+                    <div class="mouth-shape">
+                        <div class="mouth-line"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transcript -->
+        <div class="transcript-area">
+            <div class="transcript" id="transcript"></div>
+        </div>
+
+        <!-- Voice indicators and controls -->
+        <div class="voice-area">
+            <div class="listening-indicator" id="listening-indicator">
+                <div class="listening-bar"></div>
+                <div class="listening-bar"></div>
+                <div class="listening-bar"></div>
+                <div class="listening-bar"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-talk" id="talk-btn" aria-label="Press to talk">
+                    🎤 Press & Talk
+                </button>
+                <button class="btn btn-menu" id="menu-btn" aria-label="Open menu" title="Menu">⚙️</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/avatar-voice.js"></script>
+</body>
+</html>
