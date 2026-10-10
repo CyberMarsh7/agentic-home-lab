@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kokoro - The Face</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Portrait mode */
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .face-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 100vh;
+            padding: 20px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        /* Top section - face display */
+        .face-display {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .face {
+            width: 180px;
+            height: 220px;
+            border-radius: 90px 90px 80px 80px;
+            background: radial-gradient(circle at 35% 35%, #e8b4f0, #d488e8);
+            position: relative;
+            box-shadow: 0 20px 60px rgba(232, 136, 232, 0.3);
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Eyes */
+        .eyes {
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 40px;
+        }
+
+        .eye {
+            width: 30px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pupil {
+            width: 16px;
+            height: 16px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: look 4s ease-in-out infinite;
+        }
+
+        @keyframes look {
+            0%, 100% { transform: translate(-50%, -50%); }
+            25% { transform: translate(0%, -50%); }
+            50% { transform: translate(-50%, -30%); }
+            75% { transform: translate(-80%, -50%); }
+        }
+
+        /* Mouth */
+        .mouth {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 20px;
+            border: 2px solid #333;
+            border-top: none;
+            border-radius: 0 0 50px 50px;
+            animation: talk 0.3s ease-in-out infinite;
+        }
+
+        @keyframes talk {
+            0%, 100% { height: 20px; }
+            50% { height: 30px; }
+        }
+
+        /* Status display */
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Text display area */
+        .response-area {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .response-text {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #667eea;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            animation: slideUp 0.3s ease-in-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Listening indicator */
+        .listening {
+            display: none;
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ff00;
+            font-size: 14px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .listening.active {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* System controls (hidden, voice-only) */
+        .controls {
+            position: fixed;
+            bottom: -100px;
+            left: 0;
+            right: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .controls button {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="face-container">
+        <div class="face-display">
+            <div class="face">
+                <div class="eyes">
+                    <div class="eye">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="eye">
+                        <div class="pupil"></div>
+                    </div>
+                </div>
+                <div class="mouth"></div>
+                <div class="listening">🎤 Listening...</div>
+            </div>
+        </div>
+
+        <div class="response-area">
+            <div class="response-text" id="responseText">
+                Hello. I'm your kokoro. What can I do for you?
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span id="statusText">System: Ready</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="voiceBtn" hidden>Voice Control</button>
+    </div>
+
+    <script>
+        // Speech recognition setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        const responseText = document.getElementById('responseText');
+        const statusText = document.getElementById('statusText');
+        const listeningIndicator = document.querySelector('.listening');
+        const mouth = document.querySelector('.mouth');
+
+        // Start listening on load
+        window.addEventListener('load', () => {
+            startListening();
+        });
+
+        // Tap/click to speak
+        document.body.addEventListener('click', () => {
+            if (!recognition.active) {
+                startListening();
+            }
+        });
+
+        function startListening() {
+            listeningIndicator.classList.add('active');
+            statusText.textContent = 'System: Listening...';
+            recognition.start();
+        }
+
+        recognition.onstart = () => {
+            mouth.style.animation = 'talk 0.2s ease-in-out infinite';
+        };
+
+        recognition.onend = () => {
+            mouth.style.animation = '';
+            listeningIndicator.classList.remove('active');
+        };
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+
+            if (transcript) {
+                handleUserInput(transcript);
+            }
+        };
+
+        recognition.onerror = (event) => {
+            statusText.textContent = `System: Error - ${event.error}`;
+            listeningIndicator.classList.remove('active');
+            setTimeout(startListening, 2000);
+        };
+
+        async function handleUserInput(input) {
+            statusText.textContent = 'System: Processing...';
+            responseText.textContent = `You: ${input}`;
+
+            try {
+                // Send to backend orchestrator
+                const response = await fetch('/api/orchestrate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request: input })
+                });
+
+                const data = await response.json();
+                responseText.textContent = data.response || 'Processing your request...';
+                statusText.textContent = 'System: Ready';
+
+                // Text-to-speech
+                speakResponse(data.response);
+
+                // Resume listening
+                setTimeout(startListening, 1000);
+            } catch (error) {
+                statusText.textContent = `System: Error - ${error.message}`;
+                responseText.textContent = 'Sorry, I encountered an error.';
+                setTimeout(startListening, 2000);
+            }
+        }
+
+        function speakResponse(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1;
+                utterance.pitch = 1.2;
+                speechSynthesis.speak(utterance);
+            }
+        }
+    </script>
+</body>
+</html>
