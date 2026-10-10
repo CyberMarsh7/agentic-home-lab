@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kokoro - The Face</title>
+    <title>Kokoro</title>
     <style>
         * {
             margin: 0;
@@ -11,270 +11,310 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* Portrait mode */
+        html, body {
             width: 100%;
-            height: 100vh;
+            height: 100%;
             overflow: hidden;
         }
 
-        .face-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            height: 100vh;
-            padding: 20px;
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-        }
-
-        /* Top section - face display */
-        .face-display {
-            flex: 1;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 40px;
         }
 
+        .face-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            position: relative;
+        }
+
+        /* Main face */
         .face {
-            width: 180px;
-            height: 220px;
-            border-radius: 90px 90px 80px 80px;
+            width: 280px;
+            height: 350px;
+            border-radius: 140px 140px 120px 120px;
             background: radial-gradient(circle at 35% 35%, #e8b4f0, #d488e8);
             position: relative;
-            box-shadow: 0 20px 60px rgba(232, 136, 232, 0.3);
-            animation: breathe 3s ease-in-out infinite;
+            box-shadow: 0 40px 80px rgba(232, 136, 232, 0.4);
+            animation: breathe 4s ease-in-out infinite;
         }
 
         @keyframes breathe {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+            50% { transform: scale(1.03); }
         }
 
         /* Eyes */
         .eyes {
             position: absolute;
-            top: 70px;
+            top: 100px;
             left: 0;
             right: 0;
             display: flex;
             justify-content: space-around;
-            padding: 0 40px;
+            padding: 0 60px;
         }
 
         .eye {
-            width: 30px;
-            height: 40px;
+            width: 45px;
+            height: 60px;
             background: white;
             border-radius: 50%;
             position: relative;
             overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .pupil {
-            width: 16px;
-            height: 16px;
+            width: 24px;
+            height: 24px;
             background: #333;
             border-radius: 50%;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            animation: look 4s ease-in-out infinite;
+            animation: look 6s ease-in-out infinite;
         }
 
         @keyframes look {
             0%, 100% { transform: translate(-50%, -50%); }
-            25% { transform: translate(0%, -50%); }
-            50% { transform: translate(-50%, -30%); }
-            75% { transform: translate(-80%, -50%); }
+            20% { transform: translate(-20%, -40%); }
+            40% { transform: translate(-80%, -50%); }
+            60% { transform: translate(-50%, -20%); }
+            80% { transform: translate(-30%, -60%); }
         }
 
         /* Mouth */
         .mouth {
             position: absolute;
-            bottom: 60px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
-            width: 50px;
-            height: 20px;
-            border: 2px solid #333;
+            width: 70px;
+            height: 35px;
+            border: 3px solid #333;
             border-top: none;
-            border-radius: 0 0 50px 50px;
-            animation: talk 0.3s ease-in-out infinite;
+            border-radius: 0 0 70px 70px;
+            animation: neutral 6s ease-in-out infinite;
         }
 
-        @keyframes talk {
-            0%, 100% { height: 20px; }
-            50% { height: 30px; }
+        @keyframes neutral {
+            0%, 100% {
+                height: 35px;
+                border-color: #333;
+            }
+            25% {
+                height: 45px;
+                border-color: #555;
+            }
+            50% {
+                height: 25px;
+                border-color: #333;
+            }
+            75% {
+                height: 40px;
+                border-color: #555;
+            }
         }
 
-        /* Status display */
-        .status-bar {
+        /* Listening state */
+        .face.listening {
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        .face.listening .mouth {
+            animation: talking 0.15s ease-in-out infinite;
+        }
+
+        @keyframes talking {
+            0%, 100% { height: 35px; }
+            50% { height: 50px; }
+        }
+
+        /* Processing state */
+        .face.processing {
+            animation: think 3s ease-in-out infinite;
+        }
+
+        @keyframes think {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Happy state */
+        .face.happy .mouth {
+            border-radius: 70px;
+            border-bottom: none;
+            border-top: 3px solid #333;
+            top: auto;
+            bottom: 70px;
+            animation: smile 2s ease-in-out infinite;
+        }
+
+        @keyframes smile {
+            0%, 100% {
+                height: 30px;
+                transform: translateX(-50%) scaleY(1);
+            }
+            50% {
+                height: 40px;
+                transform: translateX(-50%) scaleY(1.2);
+            }
+        }
+
+        /* Error state */
+        .face.error {
+            animation: error-shake 0.5s ease-in-out;
+        }
+
+        @keyframes error-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .face.error .pupil {
+            animation: error-look 0.5s ease-in-out;
+        }
+
+        @keyframes error-look {
+            0%, 100% { transform: translate(-50%, -50%); }
+            50% { transform: translate(-50%, 20%); }
+        }
+
+        /* Blink */
+        .face .eye::after {
+            content: '';
             position: absolute;
-            bottom: 0;
+            top: 0;
             left: 0;
-            right: 0;
-            height: 30px;
-            background: rgba(0, 0, 0, 0.8);
-            color: #00ff00;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            font-family: 'Courier New', monospace;
-        }
-
-        /* Text display area */
-        .response-area {
-            flex: 1;
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            margin-bottom: 30px;
-        }
-
-        .response-text {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0e0e0;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 3px solid #667eea;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 10px;
-            animation: slideUp 0.3s ease-in-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Listening indicator */
-        .listening {
-            display: none;
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #00ff00;
-            font-size: 14px;
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        .listening.active {
-            display: block;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* System controls (hidden, voice-only) */
-        .controls {
-            position: fixed;
-            bottom: -100px;
-            left: 0;
-            right: 0;
-            opacity: 0;
+            height: 100%;
+            background: #1a1a2e;
+            border-radius: 50%;
+            animation: blink 4s ease-in-out infinite;
             pointer-events: none;
         }
 
-        .controls button {
-            display: none;
+        @keyframes blink {
+            0%, 10%, 12%, 100% { height: 0; }
+            11% { height: 100%; }
+        }
+
+        /* Subtle indicator lights (minimal) */
+        .status-light {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+            opacity: 0.5;
+        }
+
+        .status-light.processing {
+            animation: pulse-light 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-light {
+            0%, 100% { opacity: 0.5; box-shadow: 0 0 10px #00ff00; }
+            50% { opacity: 1; box-shadow: 0 0 20px #00ff00; }
+        }
+
+        .status-light.error {
+            background: #ff4444;
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        /* Voice input handler (invisible) */
+        .controls {
+            position: fixed;
+            top: -1000px;
+            left: -1000px;
         }
     </style>
 </head>
 <body>
     <div class="face-container">
-        <div class="face-display">
-            <div class="face">
-                <div class="eyes">
-                    <div class="eye">
-                        <div class="pupil"></div>
-                    </div>
-                    <div class="eye">
-                        <div class="pupil"></div>
-                    </div>
+        <div class="face" id="face">
+            <div class="eyes">
+                <div class="eye">
+                    <div class="pupil"></div>
                 </div>
-                <div class="mouth"></div>
-                <div class="listening">🎤 Listening...</div>
+                <div class="eye">
+                    <div class="pupil"></div>
+                </div>
             </div>
+            <div class="mouth"></div>
         </div>
-
-        <div class="response-area">
-            <div class="response-text" id="responseText">
-                Hello. I'm your kokoro. What can I do for you?
-            </div>
-        </div>
-
-        <div class="status-bar">
-            <span id="statusText">System: Ready</span>
-        </div>
+        <div class="status-light" id="statusLight"></div>
     </div>
 
     <div class="controls">
-        <button id="voiceBtn" hidden>Voice Control</button>
+        <input type="text" id="voiceInput" hidden />
     </div>
 
     <script>
-        // Speech recognition setup
+        const face = document.getElementById('face');
+        const statusLight = document.getElementById('statusLight');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = 'en-US';
         recognition.continuous = false;
-        recognition.interimResults = false;
 
-        const responseText = document.getElementById('responseText');
-        const statusText = document.getElementById('statusText');
-        const listeningIndicator = document.querySelector('.listening');
-        const mouth = document.querySelector('.mouth');
+        let isListening = false;
 
-        // Start listening on load
+        // Start listening immediately
         window.addEventListener('load', () => {
             startListening();
         });
 
-        // Tap/click to speak
+        // Tap anywhere to wake/speak
         document.body.addEventListener('click', () => {
-            if (!recognition.active) {
+            if (!isListening) {
                 startListening();
             }
         });
 
         function startListening() {
-            listeningIndicator.classList.add('active');
-            statusText.textContent = 'System: Listening...';
+            isListening = true;
+            face.className = 'listening';
+            statusLight.className = 'status-light processing';
             recognition.start();
         }
 
+        function setFaceState(state) {
+            face.className = state;
+
+            if (state === 'listening') {
+                statusLight.className = 'status-light processing';
+            } else if (state === 'processing') {
+                statusLight.className = 'status-light processing';
+            } else if (state === 'happy') {
+                statusLight.className = 'status-light';
+            } else if (state === 'error') {
+                statusLight.className = 'status-light error';
+            } else {
+                statusLight.className = 'status-light';
+            }
+        }
+
         recognition.onstart = () => {
-            mouth.style.animation = 'talk 0.2s ease-in-out infinite';
+            setFaceState('listening');
         };
 
         recognition.onend = () => {
-            mouth.style.animation = '';
-            listeningIndicator.classList.remove('active');
+            isListening = false;
         };
 
         recognition.onresult = (event) => {
@@ -284,22 +324,22 @@
             }
 
             if (transcript) {
-                handleUserInput(transcript);
+                handleRequest(transcript);
             }
         };
 
         recognition.onerror = (event) => {
-            statusText.textContent = `System: Error - ${event.error}`;
-            listeningIndicator.classList.remove('active');
-            setTimeout(startListening, 2000);
+            setFaceState('error');
+            setTimeout(() => {
+                setFaceState('neutral');
+                startListening();
+            }, 2000);
         };
 
-        async function handleUserInput(input) {
-            statusText.textContent = 'System: Processing...';
-            responseText.textContent = `You: ${input}`;
+        async function handleRequest(input) {
+            setFaceState('processing');
 
             try {
-                // Send to backend orchestrator
                 const response = await fetch('/api/orchestrate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -307,26 +347,31 @@
                 });
 
                 const data = await response.json();
-                responseText.textContent = data.response || 'Processing your request...';
-                statusText.textContent = 'System: Ready';
 
-                // Text-to-speech
-                speakResponse(data.response);
+                setFaceState('happy');
 
-                // Resume listening
-                setTimeout(startListening, 1000);
-            } catch (error) {
-                statusText.textContent = `System: Error - ${error.message}`;
-                responseText.textContent = 'Sorry, I encountered an error.';
+                // Speak response
+                if (data.response) {
+                    speakResponse(data.response);
+                }
+
+                // Resume listening after response
                 setTimeout(startListening, 2000);
+            } catch (error) {
+                setFaceState('error');
+                setTimeout(() => {
+                    setFaceState('neutral');
+                    startListening();
+                }, 3000);
             }
         }
 
         function speakResponse(text) {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1;
-                utterance.pitch = 1.2;
+                utterance.rate = 0.95;
+                utterance.pitch = 1.3;
+                utterance.volume = 1;
                 speechSynthesis.speak(utterance);
             }
         }
