@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kokoro - Your Companion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .world {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #001a33 0%, #000000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Holographic glow effect */
+        .glow-bg {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 150, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: glow-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.5;
+            }
+        }
+
+        /* Avatar container */
+        .avatar-container {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            filter: drop-shadow(0 0 30px rgba(0, 150, 255, 0.8));
+            animation: hover 3s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        @keyframes hover {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Head */
+        .head {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(0, 200, 255, 0.9), rgba(0, 100, 200, 0.8));
+            border-radius: 50px 50px 40px 40px;
+            border: 2px solid rgba(0, 255, 255, 0.6);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3), 0 0 30px rgba(0, 150, 255, 0.6);
+        }
+
+        /* Eyes */
+        .eyes {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .eye {
+            width: 18px;
+            height: 28px;
+            background: radial-gradient(ellipse at 30% 30%, #00ffff, #0099ff);
+            border-radius: 50%;
+            position: relative;
+            border: 1px solid #00ffff;
+            box-shadow: 0 0 10px #00ffff, inset 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: eye-shine 2s ease-in-out infinite;
+        }
+
+        @keyframes eye-shine {
+            0%, 100% {
+                box-shadow: 0 0 10px #00ffff, inset 0 0 5px rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px #00ffff, inset 0 0 10px rgba(255, 255, 255, 0.8);
+            }
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Hair/accent glow */
+        .accent {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 50px;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 255, 0.4), transparent);
+            border-radius: 50% 50% 0 0;
+            filter: blur(10px);
+            animation: accent-glow 2.5s ease-in-out infinite;
+        }
+
+        @keyframes accent-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(0, 200, 255, 0.4);
+                opacity: 0.6;
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(0, 255, 255, 0.6);
+                opacity: 0.8;
+            }
+        }
+
+        /* Torso */
+        .torso {
+            position: absolute;
+            top: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 150px;
+            background: linear-gradient(180deg, rgba(0, 180, 255, 0.7), rgba(0, 80, 180, 0.5));
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Core/heart */
+        .core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 40px;
+            background: radial-gradient(ellipse at 30% 30%, #00ffff, #0055ff);
+            border-radius: 50%;
+            box-shadow: 0 0 20px #00ffff, inset 0 0 10px rgba(255, 255, 255, 0.4);
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% {
+                box-shadow: 0 0 20px #00ffff, inset 0 0 10px rgba(255, 255, 255, 0.4);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px #00ffff, inset 0 0 15px rgba(255, 255, 255, 0.6);
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+
+        /* Arms */
+        .arms {
+            position: absolute;
+            top: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 80px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .arm {
+            width: 30px;
+            height: 120px;
+            background: linear-gradient(90deg, rgba(0, 180, 255, 0.6), rgba(0, 100, 180, 0.4));
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+            animation: arm-wave 2s ease-in-out infinite;
+        }
+
+        .arm:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes arm-wave {
+            0%, 100% {
+                transform: rotateZ(0deg);
+                opacity: 0.7;
+            }
+            50% {
+                transform: rotateZ(15deg);
+                opacity: 0.9;
+            }
+        }
+
+        /* Legs */
+        .legs {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .leg {
+            width: 25px;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(0, 150, 255, 0.6), rgba(0, 50, 150, 0.4));
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.4);
+            animation: leg-stance 2s ease-in-out infinite;
+        }
+
+        .leg:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes leg-stance {
+            0%, 100% {
+                transform: translateY(0px);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(10px);
+                opacity: 0.8;
+            }
+        }
+
+        /* Audio indicator */
+        .audio-wave {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 40px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .audio-bar {
+            width: 4px;
+            background: #00ffff;
+            border-radius: 2px;
+            box-shadow: 0 0 10px #00ffff;
+            animation: audio-wave 0.5s ease-in-out infinite;
+        }
+
+        .audio-bar:nth-child(1) { animation-delay: 0s; height: 10px; }
+        .audio-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
+        .audio-bar:nth-child(3) { animation-delay: 0.2s; height: 30px; }
+        .audio-bar:nth-child(4) { animation-delay: 0.1s; height: 20px; }
+        .audio-bar:nth-child(5) { animation-delay: 0s; height: 10px; }
+
+        @keyframes audio-wave {
+            0%, 100% { height: 10px; opacity: 0.5; }
+            50% { height: 35px; opacity: 1; }
+        }
+
+        .audio-wave.hidden {
+            display: none;
+        }
+
+        /* Status text (minimal) */
+        .status {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            opacity: 0;
+            animation: status-fade 3s ease-in-out;
+        }
+
+        @keyframes status-fade {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 0.8; }
+        }
+
+        .status.active {
+            opacity: 0.8;
+            animation: status-fade 3s ease-in-out infinite;
+        }
+
+        /* Thinking state */
+        .avatar-container.thinking .head {
+            animation: think-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes think-glow {
+            0%, 100% {
+                box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3), 0 0 30px rgba(0, 150, 255, 0.6);
+            }
+            50% {
+                box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.5), 0 0 50px rgba(0, 255, 255, 0.8);
+            }
+        }
+
+        /* Happy state */
+        .avatar-container.happy .eye {
+            animation: happy-eye 0.5s ease-out;
+        }
+
+        @keyframes happy-eye {
+            0% { height: 28px; }
+            50% { height: 5px; }
+            100% { height: 20px; }
+        }
+
+        /* Error state */
+        .avatar-container.error {
+            animation: error-pulse 0.3s ease-in-out 3;
+        }
+
+        @keyframes error-pulse {
+            0%, 100% {
+                filter: drop-shadow(0 0 30px rgba(0, 150, 255, 0.8));
+            }
+            50% {
+                filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="world">
+        <div class="glow-bg"></div>
+
+        <div class="avatar-container" id="avatar">
+            <div class="accent"></div>
+            <div class="head">
+                <div class="eyes">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+            </div>
+            <div class="torso">
+                <div class="core"></div>
+            </div>
+            <div class="arms">
+                <div class="arm"></div>
+                <div class="arm"></div>
+            </div>
+            <div class="legs">
+                <div class="leg"></div>
+                <div class="leg"></div>
+            </div>
+            <div class="audio-wave" id="audioWave">
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+            </div>
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+
+    <script>
+        const avatar = document.getElementById('avatar');
+        const status = document.getElementById('status');
+        const audioWave = document.getElementById('audioWave');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+
+        let isListening = false;
+        let memories = JSON.parse(localStorage.getItem('kokoro-memories') || '[]');
+
+        // Start on load
+        window.addEventListener('load', () => {
+            setTimeout(startListening, 500);
+        });
+
+        // Wake on tap
+        document.body.addEventListener('click', () => {
+            if (!isListening) startListening();
+        });
+
+        function startListening() {
+            isListening = true;
+            audioWave.classList.remove('hidden');
+            avatar.className = '';
+            status.textContent = 'Listening...';
+            status.classList.add('active');
+            recognition.start();
+        }
+
+        function setState(state) {
+            avatar.className = state;
+            audioWave.classList.add('hidden');
+        }
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            let confidence = 0;
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+                confidence = Math.max(confidence, event.results[i].isFinal ? event.results[i][0].confidence : 0);
+            }
+
+            if (transcript) {
+                handleRequest(transcript, confidence);
+            }
+        };
+
+        recognition.onerror = (event) => {
+            setState('error');
+            status.textContent = 'Error. Retrying...';
+            setTimeout(() => {
+                status.classList.remove('active');
+                setState('');
+                startListening();
+            }, 2000);
+        };
+
+        async function handleRequest(input, confidence) {
+            setState('thinking');
+            status.textContent = 'Processing...';
+
+            // Save to memory
+            memories.push({
+                timestamp: new Date().toISOString(),
+                input: input,
+                confidence: confidence
+            });
+            localStorage.setItem('kokoro-memories', JSON.stringify(memories.slice(-100))); // Keep last 100
+
+            try {
+                const response = await fetch('/api/orchestrate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        request: input,
+                        tone_confidence: confidence,
+                        memory_count: memories.length
+                    })
+                });
+
+                const data = await response.json();
+                setState('happy');
+                status.textContent = 'Executing...';
+
+                if (data.response) {
+                    speak(data.response);
+                }
+
+                setTimeout(() => {
+                    status.classList.remove('active');
+                    setState('');
+                    startListening();
+                }, 3000);
+            } catch (error) {
+                setState('error');
+                status.textContent = 'Error communicating';
+                setTimeout(() => {
+                    status.classList.remove('active');
+                    setState('');
+                    startListening();
+                }, 3000);
+            }
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.2;
+                utterance.volume = 1;
+                speechSynthesis.speak(utterance);
+            }
+        }
+    </script>
+</body>
+</html>
