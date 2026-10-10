@@ -403,7 +403,12 @@
             </div>
             <div class="status" id="status"></div>
         </div>
+        <!-- Hidden camera for expression recognition -->
+        <video id="expressionCamera" style="display: none; width: 320px; height: 240px;"></video>
     </div>
+
+    <!-- Face-API library for expression detection -->
+    <script async src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.10/dist/face-api.js"></script>
 
     <script>
         const avatar = document.getElementById('avatar');
@@ -521,6 +526,63 @@
                 speechSynthesis.speak(utterance);
             }
         }
+
+        // Expression Recognition - Reads your face
+        async function initExpressionRecognition() {
+            const video = document.getElementById('expressionCamera');
+
+            if (!video || !window.faceapi) {
+                console.log('Expression recognition not available (camera/face-api)');
+                return;
+            }
+
+            try {
+                // Load face-api models from CDN
+                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.10/model/';
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                ]);
+
+                // Request camera
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 320, height: 240, facingMode: 'user' }
+                });
+                video.srcObject = stream;
+
+                console.log('✓ Kokoro can see you');
+
+                // Detection loop - reads your face every 500ms
+                setInterval(async () => {
+                    if (!video.srcObject) return;
+
+                    const detections = await faceapi
+                        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceExpressions();
+
+                    if (detections && detections.expressions) {
+                        // Send to backend
+                        await fetch('/api/expression', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                expressions: detections.expressions,
+                                timestamp: new Date().toISOString()
+                            })
+                        }).catch(e => console.log('Expression update failed (offline?)'));
+                    }
+                }, 500);
+
+            } catch (e) {
+                console.log('Camera access denied or face-api failed. Kokoro can still hear you.');
+            }
+        }
+
+        // Start expression recognition on load
+        window.addEventListener('load', () => {
+            setTimeout(initExpressionRecognition, 100);
+        });
     </script>
 </body>
 </html>

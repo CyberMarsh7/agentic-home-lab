@@ -17,6 +17,7 @@ from core.memory_system import KokoroMemory
 from core.emotional_intelligence import EmotionalIntelligence
 from core.sound_reactivity import SoundReactivity
 from core.access_control import AccessControl
+from core.expression_recognition import ExpressionRecognition
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,6 +49,9 @@ class Kokoro:
 
         logger.info("Loading access control...")
         self.access = AccessControl(owner_id)
+
+        logger.info("Loading expression recognition...")
+        self.expression = ExpressionRecognition()
 
         # System traits (she is the complement of her owner)
         self.traits = {
@@ -185,6 +189,30 @@ class Kokoro:
                 result = asyncio.run(self.process_input(user_input, is_owner))
 
                 return jsonify(result)
+
+            @app.route('/api/expression', methods=['POST'])
+            def expression():
+                data = request.json
+
+                # Process facial expression
+                expr_result = self.expression.process_face_data(data)
+
+                # Get stats for memory learning
+                stats = self.expression.get_expression_stats()
+
+                # If owner, can trigger network actions based on expression
+                if expr_result['primary_emotion'] in ['angry', 'frustrated']:
+                    self.memory.record_interaction(
+                        f"[Detected emotion: {expr_result['primary_emotion']}]",
+                        "I see you're frustrated. How can I help?",
+                        expr_result['primary_emotion'],
+                        expr_result['confidence']
+                    )
+
+                return jsonify({
+                    'expression': expr_result,
+                    'stats': stats
+                })
 
             @app.route('/api/control', methods=['POST'])
             def control():
