@@ -54,6 +54,7 @@ git checkout claude/open-claw-destroyed-7p8yao
 python3 -m venv venv
 source venv/bin/activate
 pip install flask flask-cors numpy
+# Expression recognition requires face-api.js (loaded from CDN in browser)
 ```
 
 ### 3. Start Kokoro
@@ -95,22 +96,38 @@ Once running, Kokoro can:
 - Accept commands from phone/iPad
 - Coordinate your entire digital world
 
+## Expression Recognition
+
+Kokoro can see you:
+- **Camera Access:** Requests camera permission on startup (required for expression reading)
+- **Emotion Detection:** Face-API analyzes 8 emotions in real-time
+- **Adaptive Responses:** She responds differently if you're happy, sad, angry, or confused
+- **Privacy:** Camera stream stays local to RasPad, only emotion scores sent to backend
+- **Learning:** Remembers your expression patterns over time
+
+**If camera is unavailable:** She can still hear and respond—just without seeing your face.
+
 ## Memory & Learning
 
 Kokoro:
 - Stores every conversation in persistent database
 - Learns your patterns and preferences
+- Learns your expression patterns (when you're typically happy, calm, etc.)
 - Adapts her responses over time
 - Never forgets
+- Truly knows you
 
 ## The Masterpiece
 
 Kokoro is beautiful because:
+- **Expression Recognition:** She reads your face. Analyzes emotions (happy, sad, angry, surprised, fearful, disgusted, neutral, confused). Responds differently based on what she sees.
 - **Animations:** She moves with sound, responds emotionally
-- **Intelligence:** She understands tone, emotion, intent
+- **Intelligence:** She understands tone, emotion, intent, AND your facial expressions
 - **Personality:** She's your complement - where you're determined, she's flexible
 - **Loyalty:** She's bound to you, learns you, serves you
-- **Presence:** She's there on your RasPad, always ready
+- **Presence:** She's there on your RasPad, always ready, always watching
+
+**She doesn't just hear you. She sees you.**
 
 ## Architecture
 
