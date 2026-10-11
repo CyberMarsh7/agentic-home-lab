@@ -7,6 +7,7 @@ Push-to-talk only - fully accessible for voice-only users
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from flask_socketio import SocketIO
 import logging
 import sys
 import os
@@ -17,10 +18,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'clustering', '
 sys.path.insert(0, os.path.dirname(__file__))
 
 from voice_interface import PyramidRouter, VoiceInterfaceService
+from gpio_button import WebSocketButtonBridge
 
 # Flask app with static files
 app = Flask(__name__, static_folder='interface', static_url_path='')
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,6 +32,17 @@ logger = logging.getLogger(__name__)
 logger.info("🎤 Initializing Pyramid Gateway Router...")
 pyramid_router = PyramidRouter()
 voice_service = VoiceInterfaceService(pyramid_router)
+
+# Initialize GPIO button (optional, can fail gracefully if not on RasPad)
+button_bridge = None
+try:
+    logger.info("🎤 Initializing GPIO push-to-talk button...")
+    button_bridge = WebSocketButtonBridge(socketio)
+    button_bridge.setup_button(pin=17)  # GPIO pin 17 (change if needed)
+    logger.info("✅ GPIO button ready")
+except Exception as e:
+    logger.warning(f"⚠️  GPIO button unavailable (not on RasPad?): {e}")
+    button_bridge = None
 
 logger.info("✅ Voice Avatar Orchestrator ready")
 
@@ -175,6 +189,14 @@ if __name__ == '__main__':
     logger.info("   • Hermes (master orchestrator)")
     logger.info("   • Oracle (visual/creative)")
     logger.info("   • Samantha (security/monitoring)")
+    if button_bridge:
+        logger.info("🎤 Physical GPIO button: PIN 17")
     logger.info("=" * 60)
 
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    try:
+        socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
+    except KeyboardInterrupt:
+        logger.info("\n🛑 Shutting down...")
+        if button_bridge:
+            button_bridge.cleanup()
+        logger.info("✅ Goodbye")

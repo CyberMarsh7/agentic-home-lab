@@ -77,6 +77,9 @@ class VoiceAvatar {
             }
         });
 
+        // Setup GPIO WebSocket support
+        this.setupGPIOButton();
+
         // Check device status periodically
         setInterval(() => this.checkDeviceStatus(), 5000);
 
@@ -87,6 +90,47 @@ class VoiceAvatar {
 
         // Voice feedback
         this.speak("Magic screen online. Press and hold the button to talk.");
+    }
+
+    // ==================== GPIO BUTTON (WebSocket) ====================
+
+    setupGPIOButton() {
+        // Load socket.io client dynamically
+        const script = document.createElement('script');
+        script.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+        script.onload = () => {
+            console.log('🎤 GPIO WebSocket support loaded');
+            this.connectGPIOSocket();
+        };
+        script.onerror = () => {
+            console.warn('⚠️  Could not load socket.io (GPIO button unavailable)');
+        };
+        document.head.appendChild(script);
+    }
+
+    connectGPIOSocket() {
+        if (typeof io === 'undefined') {
+            console.warn('⚠️  socket.io not available');
+            return;
+        }
+
+        const socket = io();
+
+        socket.on('button_press', () => {
+            console.log('🎤 GPIO button pressed');
+            this.startListening();
+        });
+
+        socket.on('button_release', () => {
+            console.log('🎤 GPIO button released');
+            this.stopListening();
+        });
+
+        socket.on('disconnect', () => {
+            console.warn('⚠️  GPIO WebSocket disconnected');
+        });
+
+        this.gpioSocket = socket;
     }
 
     // ==================== LISTENING ====================
