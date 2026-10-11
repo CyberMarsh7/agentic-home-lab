@@ -184,6 +184,59 @@ def get_agents():
     })
 
 
+# ==================== ATOM ECHO INTEGRATION ====================
+
+@app.route('/api/echo-voice', methods=['POST'])
+def echo_voice():
+    """
+    Receive audio from Atom Echo device
+    Process voice and return response
+    """
+
+    try:
+        # Get audio data from request
+        audio_data = request.data
+
+        if not audio_data:
+            return jsonify({'error': 'No audio data'}), 400
+
+        logger.info(f"🎤 Received audio from Atom Echo ({len(audio_data)} bytes)")
+
+        # TODO: Transcribe audio to text
+        # For now, log and return placeholder
+        # Real implementation would use speech-to-text API
+
+        transcript = "transcribed audio would go here"
+        logger.info(f"📝 Transcript: {transcript}")
+
+        # Process through orchestrator (same as web avatar)
+        user_context = {'source': 'atom-echo', 'timestamp': datetime.now().isoformat()}
+
+        # Route to agent
+        result = voice_service.process_orchestrate_request({
+            'request': transcript,
+            'context': user_context
+        })
+
+        response_text = result.get('response', 'I heard you.')
+
+        logger.info(f"✅ Atom Echo response: {response_text}")
+
+        return jsonify({
+            'status': 'success',
+            'response': response_text,
+            'transcript': transcript,
+            'source': 'atom-echo'
+        })
+
+    except Exception as e:
+        logger.error(f"❌ Atom Echo error: {e}", exc_info=True)
+        return jsonify({
+            'error': str(e),
+            'response': "I encountered an error processing your request."
+        }), 500
+
+
 # ==================== STARTUP ====================
 
 if __name__ == '__main__':
