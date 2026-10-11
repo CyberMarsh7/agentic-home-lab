@@ -67,34 +67,23 @@ pip install -q -r requirements.txt
 echo "✅ Dependencies installed"
 
 echo ""
-echo "🔧 Checking GPIO support..."
-
-# Try importing RPi.GPIO
-python3 << EOF
-try:
-    import RPi.GPIO as GPIO
-    print("✅ RPi.GPIO available (GPIO button will work)")
-except ImportError:
-    print("⚠️  RPi.GPIO not available (GPIO button will not work)")
-    print("   To enable: sudo apt install -y python3-rpi.gpio")
-EOF
-
-echo ""
 echo "📝 Configuration Summary:"
 echo "  • Avatar Interface: http://<raspad-ip>:5000"
+echo "  • Split Screen: http://<raspad-ip>:5000/split (with Home Assistant)"
 echo "  • Agent Routing: Pyramid Gateway (local + Tailscale fallback)"
-echo "  • Push-to-Talk: Spacebar (keyboard) or GPIO pin 17 (physical button)"
+echo "  • Push-to-Talk: Spacebar (keyboard) or M5Stack device"
 echo "  • Web Speech API: Browser microphone + speaker"
 echo ""
 
-echo "🎤 GPIO BUTTON SETUP (Optional)"
-echo "──────────────────────────────"
+echo "🎤 M5STACK DEVICE SETUP (Optional)"
+echo "──────────────────────────────────"
 echo ""
-echo "To add a physical push-to-talk button, wire it to:"
-echo "  • GPIO Pin 17 (BCM numbering)"
-echo "  • Ground pin"
+echo "You can use M5Stack devices for:"
+echo "  • Physical push-to-talk button"
+echo "  • Status display (showing avatar state, device status)"
+echo "  • Voice feedback speaker"
 echo ""
-echo "The button will automatically be detected and used when pressed."
+echo "See M5STACK-SETUP.md for integration details."
 echo ""
 
 echo "🚀 Starting Magic Screen..."
