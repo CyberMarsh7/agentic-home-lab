@@ -16,7 +16,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'clustering', 'backend'))
 sys.path.insert(0, os.path.dirname(__file__))
 
-from voice_interface import OpenClawRouter, VoiceInterfaceService
+from voice_interface import PyramidRouter, VoiceInterfaceService
 
 # Flask app with static files
 app = Flask(__name__, static_folder='interface', static_url_path='')
@@ -26,9 +26,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize voice routing system
-logger.info("🎤 Initializing OpenClaw Voice Router...")
-openclaw_router = OpenClawRouter()
-voice_service = VoiceInterfaceService(openclaw_router)
+logger.info("🎤 Initializing Pyramid Gateway Router...")
+pyramid_router = PyramidRouter()
+voice_service = VoiceInterfaceService(pyramid_router)
 
 logger.info("✅ Voice Avatar Orchestrator ready")
 
@@ -92,8 +92,8 @@ def health():
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'agents_online': status['uptime'],
-        'agents_total': status['total']
+        'gateway': status,
+        'avatar': 'ready'
     })
 
 
@@ -156,9 +156,10 @@ def get_devices():
 
 @app.route('/api/agents', methods=['GET'])
 def get_agents():
-    """List all OpenClaw agents with details"""
+    """Get Pyramid gateway info"""
     return jsonify({
-        'agents': openclaw_router.get_agent_info(),
+        'gateway': 'pyramid',
+        'status': voice_service.get_status(),
         'timestamp': datetime.now().isoformat()
     })
 
