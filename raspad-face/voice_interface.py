@@ -1,160 +1,73 @@
 """
-Voice Interface Service
-Routes voice commands from avatar to OpenClaw agents (Hermes, Oracle, Samantha)
-Fully accessible: push-to-talk only, no wake words, no always-listening
+Voice Interface Service - CORRECTED
+Routes voice commands from avatar to Pyramid's OpenClaw gateway
+Does NOT try to run agents locally - delegates to Pyramid
 """
 
-import subprocess
-import json
+import requests
 import logging
 from datetime import datetime
-from typing import Dict, List, Tuple, Optional
-import os
-import sys
-import time
+from typing import Dict, Optional
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class OpenClawRouter:
-    """Routes voice commands to appropriate OpenClaw agent"""
-
-    # Agent endpoints (from agentic-home-lab README)
-    AGENTS = {
-        'hermes': {
-            'role': 'Master orchestrator',
-            'location': 'victus',
-            'capabilities': ['orchestration', 'scheduling', 'vision', 'reasoning'],
-            'command': ['openclaw', 'agent', '--agent', 'hermes', '--message']
-        },
-        'oracle': {
-            'role': 'Visual/creative agent',
-            'location': 'pyramid',
-            'capabilities': ['vision', 'design', 'creative', 'local-models'],
-            'command': ['openclaw', 'agent', '--agent', 'oracle', '--message']
-        },
-        'samantha': {
-            'role': 'Security/local agent',
-            'location': 'victus',
-            'capabilities': ['security', 'monitoring', 'local-control'],
-            'command': ['openclaw', 'agent', '--agent', 'samantha', '--message']
-        }
-    }
+class PyramidRouter:
+    """Routes voice commands to Pyramid's OpenClaw gateway"""
 
     def __init__(self):
-        self.agent_status = {name: 'unknown' for name in self.AGENTS}
-        self.last_heartbeat = {name: None for name in self.AGENTS}
+        # Pyramid gateway endpoints (try local first, then Tailscale)
+        self.pyramid_local = "http://192.168.1.227:18789"
+        self.pyramid_tailscale = "http://marshinpi:18789"
+
+        self.gateway_url = None
         self.message_history = []
-        self.refresh_agent_status()
 
-    def refresh_agent_status(self):
-        """Check which agents are actually online"""
-        logger.info("🔍 Checking agent status...")
+        self.find_pyramid()
 
+    def find_pyramid(self):
+        """Find Pyramid gateway - try local first, fallback to Tailscale"""
+        logger.info("🔍 Finding Pyramid gateway...")
+
+        # Try local network first (faster, more reliable if at home)
         try:
-            result = subprocess.run(
-                ['bash', os.path.join(os.path.dirname(__file__), '..', 'scripts', 'fleet-status.sh')],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
+            response = requests.get(f"{self.pyramid_local}/api", timeout=2)
+            if response.status_code < 500:
+                self.gateway_url = self.pyramid_local
+                logger.info(f"✅ Found Pyramid local: {self.pyramid_local}")
+                return
+        except:
+            logger.debug(f"❌ Local Pyramid unreachable")
 
-            # Parse fleet status output
-            for agent_name in self.AGENTS:
-                if agent_name in result.stdout.lower():
-                    # Simplified check - would parse real output
-                    self.agent_status[agent_name] = 'online'
-                    self.last_heartbeat[agent_name] = datetime.now()
-                else:
-                    self.agent_status[agent_name] = 'offline'
-
-            logger.info(f"✅ Agent status: {self.agent_status}")
-        except Exception as e:
-            logger.error(f"❌ Failed to check status: {e}")
-
-    def classify_command(self, text: str) -> Tuple[str, str]:
-        """
-        Determine which agent should handle this
-        Returns: (agent_name, instruction_for_agent)
-        """
-
-        text_lower = text.lower()
-
-        # Security/monitoring → Samantha
-        if any(word in text_lower for word in ['security', 'monitor', 'check', 'status', 'safe', 'threat']):
-            return 'samantha', text
-
-        # Vision/design/creative → Oracle
-        if any(word in text_lower for word in ['image', 'design', 'draw', 'picture', 'look', 'see', 'visual']):
-            return 'oracle', text
-
-        # Complex reasoning, scheduling, orchestration → Hermes
-        if any(word in text_lower for word in ['schedule', 'when', 'automate', 'organize', 'reason', 'think']):
-            return 'hermes', text
-
-        # Device control - try Oracle first (Pyramid), fallback to Hermes
-        if any(word in text_lower for word in ['device', 'control', 'turn', 'set', 'activate', 'run']):
-            return 'oracle', text
-
-        # Default to Hermes (master orchestrator)
-        return 'hermes', text
-
-    def send_command(self, agent_name: str, instruction: str) -> Optional[Dict]:
-        """
-        Send command to an OpenClaw agent via CLI
-        Returns: response dict or None on failure
-        """
-
-        if agent_name not in self.AGENTS:
-            logger.warning(f"❌ Unknown agent: {agent_name}")
-            return None
-
-        agent_config = self.AGENTS[agent_name]
-
-        # Build command
-        cmd = agent_config['command'] + [instruction]
-
-        logger.info(f"📤 Sending to {agent_name}: {instruction[:100]}...")
-
+        # Fall back to Tailscale
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
+            response = requests.get(f"{self.pyramid_tailscale}/api", timeout=5)
+            if response.status_code < 500:
+                self.gateway_url = self.pyramid_tailscale
+                logger.info(f"✅ Found Pyramid via Tailscale: {self.pyramid_tailscale}")
+                return
+        except:
+            logger.warning(f"❌ Tailscale Pyramid also unreachable")
 
-            if result.returncode == 0:
-                # Try to parse JSON response
-                try:
-                    response = json.loads(result.stdout)
-                    logger.info(f"✅ {agent_name} responded")
-                    return response
-                except json.JSONDecodeError:
-                    # Fall back to text response
-                    logger.info(f"✅ {agent_name} responded (text)")
-                    return {'response': result.stdout, 'agent': agent_name}
-            else:
-                logger.error(f"❌ {agent_name} error: {result.stderr}")
-                return {'error': result.stderr, 'agent': agent_name}
-
-        except subprocess.TimeoutExpired:
-            logger.error(f"❌ {agent_name} timeout (>30s)")
-            return {'error': 'Agent timeout', 'agent': agent_name}
-        except Exception as e:
-            logger.error(f"❌ Failed to send to {agent_name}: {e}")
-            return {'error': str(e), 'agent': agent_name}
+        logger.warning("⚠️  Pyramid gateway unreachable - will try again on next request")
 
     def process_voice_command(self, text: str, context: Optional[Dict] = None) -> Dict:
         """
-        Process a voice command and route to appropriate agent
+        Process a voice command by sending to Pyramid's OpenClaw gateway
+        Pyramid decides which agent (Hermes/Oracle/Samantha) should handle it
         """
 
         logger.info(f"🎤 Voice command: {text}")
+
+        if not self.gateway_url:
+            self.find_pyramid()
+
+        if not self.gateway_url:
+            return {
+                'response': "I cannot reach the gateway. Check if Pyramid is online.",
+                'status': 'failed',
+                'agent': 'none'
+            }
 
         # Store in history
         self.message_history.append({
@@ -163,65 +76,91 @@ class OpenClawRouter:
             'context': context or {}
         })
 
-        # Classify
-        agent_name, instruction = self.classify_command(text)
-        logger.info(f"📍 Routing to: {agent_name}")
+        try:
+            # Send to Pyramid's OpenClaw gateway
+            # The gateway will route to the appropriate agent
+            response = requests.post(
+                f"{self.gateway_url}/api/orchestrate",
+                json={
+                    'request': text,
+                    'source': 'raspad-avatar',
+                    'timestamp': datetime.now().isoformat()
+                },
+                timeout=30
+            )
 
-        # Check if agent is online
-        if self.agent_status.get(agent_name) != 'online':
-            logger.warning(f"⚠️  {agent_name} may be offline, trying anyway...")
+            if response.status_code == 200:
+                data = response.json()
+                agent = data.get('agent', 'unknown')
+                voice_response = data.get('response', 'Command processed')
 
-        # Send command
-        response = self.send_command(agent_name, instruction)
+                logger.info(f"✅ {agent} responded: {voice_response[:100]}")
 
-        # Format response for voice output
-        if response:
-            if 'response' in response:
-                voice_response = response['response']
-            elif 'error' in response:
-                voice_response = f"Agent error: {response['error']}"
+                return {
+                    'response': voice_response,
+                    'agent': agent,
+                    'status': 'success',
+                    'timestamp': datetime.now().isoformat()
+                }
             else:
-                voice_response = "Command executed"
-        else:
-            voice_response = f"Failed to reach {agent_name}"
+                logger.error(f"❌ Gateway returned {response.status_code}")
+                return {
+                    'response': f"Gateway error: {response.status_code}",
+                    'status': 'failed',
+                    'agent': 'gateway'
+                }
 
-        return {
-            'response': voice_response,
-            'agent': agent_name,
-            'status': 'success' if response and 'error' not in response else 'failed',
-            'timestamp': datetime.now().isoformat()
-        }
-
-    def get_system_status(self) -> Dict:
-        """Get current system status for UI"""
-        self.refresh_agent_status()
-        return {
-            'agents': self.agent_status,
-            'last_heartbeat': self.last_heartbeat,
-            'uptime': sum(1 for s in self.agent_status.values() if s == 'online'),
-            'total': len(self.AGENTS)
-        }
-
-    def get_agent_info(self) -> List[Dict]:
-        """Get info about all agents"""
-        return [
-            {
-                'name': name,
-                'role': config['role'],
-                'location': config['location'],
-                'status': self.agent_status.get(name, 'unknown'),
-                'capabilities': config['capabilities']
+        except requests.exceptions.Timeout:
+            logger.error("❌ Gateway timeout (>30s)")
+            return {
+                'response': "The gateway is taking too long to respond. Try again.",
+                'status': 'timeout',
+                'agent': 'gateway'
             }
-            for name, config in self.AGENTS.items()
-        ]
+        except requests.exceptions.ConnectionError:
+            logger.error("❌ Cannot connect to gateway")
+            self.gateway_url = None  # Reset to try again next time
+            return {
+                'response': "Lost connection to gateway. Trying again...",
+                'status': 'offline',
+                'agent': 'gateway'
+            }
+        except Exception as e:
+            logger.error(f"❌ Error: {e}")
+            return {
+                'response': f"Error: {str(e)}",
+                'status': 'error',
+                'agent': 'gateway'
+            }
+
+    def get_status(self) -> Dict:
+        """Get Pyramid gateway status"""
+        if not self.gateway_url:
+            return {
+                'gateway': 'offline',
+                'reachable': False,
+                'agents': {}
+            }
+
+        try:
+            response = requests.get(f"{self.gateway_url}/api/health", timeout=5)
+            if response.status_code == 200:
+                return response.json()
+        except:
+            pass
+
+        return {
+            'gateway': 'online',
+            'reachable': True,
+            'agents': {}
+        }
 
 
 class VoiceInterfaceService:
-    """Flask service for voice avatar interface"""
+    """Flask service wrapper for voice avatar"""
 
-    def __init__(self, router: OpenClawRouter):
+    def __init__(self, router: PyramidRouter):
         self.router = router
-        self.initialization_complete = False
 
     def process_orchestrate_request(self, request_data: Dict) -> Dict:
         """Process voice command from avatar"""
@@ -235,68 +174,23 @@ class VoiceInterfaceService:
                 'status': 'failed'
             }
 
-        # Process through router
-        result = self.router.process_voice_command(request_text, context)
-
-        return {
-            'response': result['response'],
-            'status': result['status'],
-            'agent': result['agent'],
-            'timestamp': result['timestamp']
-        }
+        return self.router.process_voice_command(request_text, context)
 
     def get_devices(self) -> Dict:
-        """Get device/agent status"""
-        status = self.router.get_system_status()
+        """Get gateway status (for UI)"""
+        status = self.router.get_status()
         return {
             'devices': {
-                name: {
-                    'status': 'online' if status['agents'][name] == 'online' else 'offline',
-                    'online': status['agents'][name] == 'online',
-                    'role': self.router.AGENTS[name]['role'],
-                    'location': self.router.AGENTS[name]['location']
+                'pyramid': {
+                    'status': 'online' if status.get('reachable') else 'offline',
+                    'online': status.get('reachable', False),
+                    'role': 'OpenClaw Gateway',
+                    'location': 'local + tailscale'
                 }
-                for name in self.router.AGENTS
             },
             'timestamp': datetime.now().isoformat()
         }
 
     def get_status(self) -> Dict:
         """Get full system status"""
-        return self.router.get_system_status()
-
-
-# ==================== STANDALONE TEST ====================
-
-def test_voice_interface():
-    """Test the voice interface without Flask"""
-
-    logger.info("🎙️  Voice Interface Test")
-    logger.info("=" * 50)
-
-    router = OpenClawRouter()
-
-    # Test commands
-    test_commands = [
-        "What's the security status?",
-        "Show me an image of a cat",
-        "Schedule a meeting for tomorrow",
-        "Turn on the lights",
-        "Check system status"
-    ]
-
-    for cmd in test_commands:
-        logger.info(f"\n📝 Testing: {cmd}")
-        result = router.process_voice_command(cmd)
-        logger.info(f"✅ Result: {result}")
-        time.sleep(1)
-
-
-if __name__ == '__main__':
-    # Test mode
-    if '--test' in sys.argv:
-        test_voice_interface()
-    else:
-        # Production: import and use in orchestrator.py
-        logger.info("Voice Interface module loaded")
-        logger.info("Import OpenClawRouter and VoiceInterfaceService to use")
+        return self.router.get_status()
