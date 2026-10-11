@@ -89,8 +89,14 @@ coach = CoachAgent()
 @app.route('/')
 @app.route('/index.html')
 def index():
-    """Serve avatar interface"""
+    """Serve avatar interface (default)"""
     return send_from_directory('interface', 'voice-avatar.html')
+
+@app.route('/split')
+@app.route('/split-screen.html')
+def split_screen():
+    """Serve split-screen avatar + Home Assistant dashboard"""
+    return send_from_directory('interface', 'split-screen.html')
 
 @app.route('/avatar-voice.js')
 def serve_js():

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pee-wee's Magic Screen - Split View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ==================== AVATAR SIDE (Left 50%) ==================== */
+
+        .avatar-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-right: 3px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: relative;
+        }
+
+        .avatar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 20px;
+        }
+
+        /* Avatar Face */
+        #face {
+            width: 200px;
+            height: 250px;
+            background: radial-gradient(circle at 30% 30%, #fff9e6, #f5d5a8);
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Eyes */
+        .eye {
+            position: absolute;
+            width: 40px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            top: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .eye.left {
+            left: 50px;
+        }
+
+        .eye.right {
+            right: 50px;
+        }
+
+        .pupil {
+            width: 20px;
+            height: 28px;
+            background: #333;
+            border-radius: 50%;
+            position: relative;
+            animation: blink 4s infinite;
+        }
+
+        @keyframes blink {
+            0%, 95%, 100% { height: 28px; }
+            97.5% { height: 5px; }
+        }
+
+        /* Mouth */
+        #mouth {
+            position: absolute;
+            bottom: 40px;
+            width: 60px;
+            height: 30px;
+            border: 2px solid #333;
+            border-top: none;
+            border-radius: 0 0 60px 60px;
+            background: #ffb6c1;
+        }
+
+        #mouth.speaking {
+            animation: speak 0.3s infinite;
+        }
+
+        @keyframes speak {
+            0%, 100% { height: 30px; }
+            50% { height: 40px; }
+        }
+
+        /* Blush */
+        .blush {
+            position: absolute;
+            width: 35px;
+            height: 25px;
+            background: rgba(255, 192, 203, 0.6);
+            border-radius: 50%;
+            bottom: 80px;
+        }
+
+        .blush.left {
+            left: 20px;
+            animation: blush-pulse 2s infinite;
+        }
+
+        .blush.right {
+            right: 20px;
+            animation: blush-pulse 2s infinite 0.3s;
+        }
+
+        @keyframes blush-pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Talk Button */
+        #talk-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ff6b9d, #c44569);
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #talk-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        #talk-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Transcript */
+        #transcript {
+            width: 90%;
+            max-width: 400px;
+            min-height: 60px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            font-size: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* ==================== HA DASHBOARD (Right 50%) ==================== */
+
+        .ha-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f5f5f5;
+            padding: 20px;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .ha-header {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .ha-section {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .ha-section-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .ha-entity {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ha-entity:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .entity-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .entity-state {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .state-on {
+            background: #4caf50;
+            color: white;
+        }
+
+        .state-off {
+            background: #f44336;
+            color: white;
+        }
+
+        .state-unknown {
+            background: #9e9e9e;
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        /* Listening Indicator */
+        #listening-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid #4caf50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #listening-indicator.active {
+            opacity: 1;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1200px) {
+            #face {
+                width: 150px;
+                height: 200px;
+            }
+
+            .eye {
+                width: 30px;
+                height: 40px;
+                top: 50px;
+            }
+
+            .eye.left {
+                left: 35px;
+            }
+
+            .eye.right {
+                right: 35px;
+            }
+
+            #talk-btn {
+                width: 100px;
+                height: 100px;
+                font-size: 16px;
+            }
+
+            #transcript {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .avatar-side {
+                flex: 0.6;
+                border-right: none;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .ha-side {
+                flex: 0.4;
+            }
+        }
+
+        /* Scrollbar styling */
+        .ha-side::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .ha-side::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .ha-side::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .ha-side::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Side: Avatar -->
+        <div class="avatar-side">
+            <div id="listening-indicator"></div>
+
+            <div class="avatar-container">
+                <div id="face">
+                    <div class="eye left">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="eye right">
+                        <div class="pupil"></div>
+                    </div>
+                    <div id="mouth"></div>
+                    <div class="blush left"></div>
+                    <div class="blush right"></div>
+                </div>
+
+                <button id="talk-btn">🎤 Press & Talk</button>
+
+                <div id="transcript">Ready! Press and hold to talk.</div>
+            </div>
+        </div>
+
+        <!-- Right Side: HA Dashboard -->
+        <div class="ha-side">
+            <div class="ha-header">🏠 Home Status</div>
+
+            <!-- Lights Section -->
+            <div class="ha-section">
+                <div class="ha-section-title">💡 Lights</div>
+                <div id="lights-container" class="empty-state">
+                    <div class="empty-state-icon">🔦</div>
+                    <div class="empty-state-text">No lights available yet</div>
+                </div>
+            </div>
+
+            <!-- Climate Section -->
+            <div class="ha-section">
+                <div class="ha-section-title">🌡️ Climate</div>
+                <div id="climate-container" class="empty-state">
+                    <div class="empty-state-icon">❄️</div>
+                    <div class="empty-state-text">No climate devices available yet</div>
+                </div>
+            </div>
+
+            <!-- Switches/Outlets -->
+            <div class="ha-section">
+                <div class="ha-section-title">⚡ Switches & Outlets</div>
+                <div id="switches-container" class="empty-state">
+                    <div class="empty-state-icon">🔌</div>
+                    <div class="empty-state-text">No switches available yet</div>
+                </div>
+            </div>
+
+            <!-- Locks -->
+            <div class="ha-section">
+                <div class="ha-section-title">🔐 Locks</div>
+                <div id="locks-container" class="empty-state">
+                    <div class="empty-state-icon">🔒</div>
+                    <div class="empty-state-text">No locks available yet</div>
+                </div>
+            </div>
+
+            <!-- Cameras -->
+            <div class="ha-section">
+                <div class="ha-section-title">📷 Cameras</div>
+                <div id="cameras-container" class="empty-state">
+                    <div class="empty-state-icon">🎥</div>
+                    <div class="empty-state-text">No cameras available yet</div>
+                </div>
+            </div>
+
+            <!-- Other Devices -->
+            <div class="ha-section">
+                <div class="ha-section-title">📱 All Devices</div>
+                <div id="all-devices-container" class="empty-state">
+                    <div class="empty-state-icon">📡</div>
+                    <div class="empty-state-text">No devices connected yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/avatar-voice.js"></script>
+    <script>
+        // Initialize avatar (uses existing avatar-voice.js)
+        const avatar = new VoiceAvatar();
+
+        // Home Assistant integration
+        class HADashboard {
+            constructor() {
+                this.haUrl = localStorage.getItem('ha_url') || null;
+                this.haToken = localStorage.getItem('ha_token') || null;
+                this.entities = {};
+
+                console.log('🏠 Home Assistant Dashboard initialized');
+                console.log('📍 To configure HA:');
+                console.log('   1. Open browser console');
+                console.log('   2. localStorage.setItem("ha_url", "http://192.168.1.100:8123")');
+                console.log('   3. localStorage.setItem("ha_token", "YOUR_HA_TOKEN")');
+                console.log('   4. Reload page');
+
+                if (this.haUrl && this.haToken) {
+                    console.log('✅ HA configured, fetching entities...');
+                    this.fetchEntities();
+                    setInterval(() => this.fetchEntities(), 5000);
+                } else {
+                    console.warn('⚠️  HA not configured yet');
+                }
+            }
+
+            async fetchEntities() {
+                if (!this.haUrl || !this.haToken) return;
+
+                try {
+                    const response = await fetch(`${this.haUrl}/api/states`, {
+                        headers: {
+                            'Authorization': `Bearer ${this.haToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const states = await response.json();
+                        this.processEntities(states);
+                    } else {
+                        console.error('❌ HA API error:', response.status);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to fetch HA entities:', error);
+                }
+            }
+
+            processEntities(states) {
+                const categories = {
+                    lights: [],
+                    climate: [],
+                    switches: [],
+                    locks: [],
+                    cameras: [],
+                    other: []
+                };
+
+                states.forEach(entity => {
+                    const { entity_id, state, attributes } = entity;
+                    const friendlyName = attributes.friendly_name || entity_id;
+
+                    if (entity_id.startsWith('light.')) {
+                        categories.lights.push({ entity_id, state, friendlyName });
+                    } else if (entity_id.startsWith('climate.') || entity_id.startsWith('sensor.temperature')) {
+                        categories.climate.push({ entity_id, state, friendlyName });
+                    } else if (entity_id.startsWith('switch.') || entity_id.startsWith('input_boolean.')) {
+                        categories.switches.push({ entity_id, state, friendlyName });
+                    } else if (entity_id.startsWith('lock.')) {
+                        categories.locks.push({ entity_id, state, friendlyName });
+                    } else if (entity_id.startsWith('camera.')) {
+                        categories.cameras.push({ entity_id, state, friendlyName });
+                    } else if (!entity_id.startsWith('binary_sensor.') && !entity_id.startsWith('automation.')) {
+                        categories.other.push({ entity_id, state, friendlyName });
+                    }
+                });
+
+                this.renderDashboard(categories);
+            }
+
+            renderDashboard(categories) {
+                this.renderCategory('lights', categories.lights, '💡');
+                this.renderCategory('climate', categories.climate, '🌡️');
+                this.renderCategory('switches', categories.switches, '⚡');
+                this.renderCategory('locks', categories.locks, '🔐');
+                this.renderCategory('cameras', categories.cameras, '📷');
+                this.renderCategory('all-devices', categories.other, '📡');
+            }
+
+            renderCategory(containerId, entities, icon) {
+                const container = document.getElementById(`${containerId}-container`);
+
+                if (entities.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">${icon === '💡' ? '🔦' : icon === '🌡️' ? '❄️' : icon === '⚡' ? '🔌' : icon === '🔐' ? '🔒' : icon === '📷' ? '🎥' : '📡'}</div>
+                            <div class="empty-state-text">No ${containerId} available</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = entities.map(entity => {
+                    const stateClass = entity.state === 'on' || entity.state === 'locked' ? 'state-on' : 'state-off';
+                    const displayState = entity.state === 'on' ? 'ON' : entity.state === 'locked' ? 'LOCKED' : entity.state === 'off' ? 'OFF' : entity.state === 'unlocked' ? 'UNLOCKED' : entity.state.toUpperCase();
+
+                    return `
+                        <div class="ha-entity" onclick="dashboard.toggleEntity('${entity.entity_id}')">
+                            <div class="entity-name">${entity.friendlyName}</div>
+                            <div class="entity-state ${stateClass}">${displayState}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            async toggleEntity(entityId) {
+                if (!this.haUrl || !this.haToken) {
+                    console.warn('⚠️  HA not configured');
+                    return;
+                }
+
+                const service = entityId.startsWith('light.') ? 'light/toggle' :
+                               entityId.startsWith('switch.') ? 'switch/toggle' :
+                               entityId.startsWith('lock.') ? 'lock/toggle' :
+                               'homeassistant/toggle';
+
+                try {
+                    const response = await fetch(`${this.haUrl}/api/services/${service}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.haToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            entity_id: entityId
+                        })
+                    });
+
+                    if (response.ok) {
+                        console.log(`✅ Toggled ${entityId}`);
+                        this.fetchEntities();
+                    } else {
+                        console.error('❌ Failed to toggle:', response.status);
+                    }
+                } catch (error) {
+                    console.error('❌ Error toggling entity:', error);
+                }
+            }
+        }
+
+        // Initialize dashboard
+        const dashboard = new HADashboard();
+    </script>
+</body>
+</html>
